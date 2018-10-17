@@ -1,0 +1,10 @@
+{
+  "filter": [
+    6,
+    {
+      "add":5,
+      "remove":"Moderator",
+      "help": 5
+    }
+  ]
+}
