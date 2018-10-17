@@ -150,13 +150,3 @@ def main():
 
 # And so it begins...
 main()
-
-'''
-parameters = {'client_id':'BRyFRBxtf3muuLBX', 'client_secret':'4adcpUswqgKrJyitK5pJS9Ef','channel_id':channel_id}
-
-client = requests.get('https://api.picarto.tv/v1/webhooks', params=parameters)
-print(client)
-
-r = requests.get('https://api.picarto.tv/v1/channel/name/kingcrazy')
-print(r.json()['name'])
-'''
