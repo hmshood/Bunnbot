@@ -6,6 +6,7 @@ import importlib
 import os
 import asyncio
 import sys
+import json
 from src import Bytes
 from src import Consts as C
 from src import PermissionAuthority as PA
@@ -17,11 +18,14 @@ plugin_folder = "./plugins"
 main_module = "__init__"
 permission_authority = PA.PermissionAuthority()
 permissions_file = "permissions.json"
+plugin_config_file = "plugins.json"
+
+
 
 class PluginManager():
     def __init__(self):
         self.plugins = []
-
+        self.plugin_json_data = {}
         try:
             self.plugins = self.get_plugins()
 
@@ -34,24 +38,62 @@ class PluginManager():
         plugins = []
         plugin_name = ""
         plugin_files = os.listdir(plugin_folder)
+        self.load_plugin_config()
         for i in plugin_files:
             path = os.path.join(plugin_folder, i)
-
-            self.load_permissions(path,False)
 
             if not os.path.isdir(path) or not main_module + ".py" in os.listdir(path):
                 continue
 
             info = importlib.import_module("plugins." +i)
             #print(info.__name__)
-            plugins.append(info)
+            if (self.check_plugin_enabled(info.__name__.split(".")[1])):
+                plugins.append(info)
+                self.load_permissions(path,False)
+                print("Loaded plugin: {}".format(i))
             #info = importlib.machinery.PathFinder().find_spec(main_module, [path])
             #plug = self.load_plugin(info)
             #self.plugins.append(plug)
             #info.loader.exec_module(plug)
             #plugins.append(info)#{"name":i,"info":info})
-            print("Loaded plugin: {}".format(i))
+
+        self.update_plugin_config()
         return plugins
+
+    def load_plugin_config(self):
+        try:
+            with open(plugin_config_file,'r') as plugin_config:
+                self.plugin_json_data = json.load(plugin_config)
+                print("Plugin config loaded")
+                return True
+            return False
+        except FileNotFoundError:
+            print("No plugins.json file found. Creating plugins.json")
+            with open(plugin_config_file,"w+") as plugin_config:
+                plugin_config.write("{}")
+                return True
+            return False
+
+    def update_plugin_config(self):
+        #try:
+        with open(plugin_config_file,'w') as plugin_config:
+            json.dump(self.plugin_json_data, plugin_config, indent=1)
+            print("Plugin config dumped")
+        #except Exception:
+        #    print("Error writing to plugins.json")
+
+    def check_plugin_enabled(self, plugin_name):
+        keys = self.plugin_json_data.keys()
+        if (plugin_name in keys):
+            val = self.plugin_json_data[plugin_name].lower()
+            if (val == "true" or val == "1" or val == "enabled"):
+                return True
+            else:
+                return False
+        else:
+            print("" + plugin_name + " not found in keys")
+            self.plugin_json_data[plugin_name] = "true"
+            return True
 
     def load_plugin(self, plugin):
         return importlib.util.module_from_spec(plugin)

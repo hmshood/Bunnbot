@@ -1,23 +1,27 @@
 # cunt
-[Cc][Uu][Nn][Tt][SsZz]*
+# [Cc][Uu][Nn][Tt][SsZz]*
+^([Cc]+[Uu]*[Nn]+[Tt]+[SsZz$]*)
 
 # coon
-[CcKk][Oo0]{2,}[Nn]+[SsZz]*
+# [CcKk][Oo0]{2,}[Nn]+[SsZz]*
+^((?![Rr][Aa][Cc])[CcKk][Oo0]{2,}[Nn]+[SsZz$]*)
 
 # chink
-[Cc][Hh][Ii1l!]+[Nn]+[Kk]+[SsZz$]*
+# [Cc][Hh][Ii1l!]+[Nn]+[Kk]+[SsZz$]*
+^([Cc]+[Hh]+[Ii1l!]+[Nn]+[Kk]+[SsZz$]*)
 
 # dyke
-[Dd][YyIi!l]+[Kk]+[Ee3]+[SsZz]*
+[Dd][YyIi!l]+[Kk]+[Ee3]+[SsZz$]*
 
 # fag / faggot
-[Ff]+[Aa4@]+[Gg]+([Oo0]+[Tt]+)*[SsZz$]*
+^([Ff]+[Aa4@]+[Gg]+([Oo0]+[Tt]+)*[SsZz$]*)
 
 # jap
+# fix this one so it doesn't catch "Japanese"
 [Jj]+[Aa4@]+[Pp]+[SsZz$]*
 
 # kike
-[Kk]+[Ii1l!]+[Kk]+[Ee3]+[SsZz$]*
+^([Kk]+[Ii1l!]+[Kk]+[Ee3]+[SsZz$]*)
 
 # nigger
 [Nn]+[Ii1l!]+[GgBb]+[Ee3Aa]+[Rr]+[SsZz$]*
