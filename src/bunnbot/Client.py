@@ -45,6 +45,8 @@ class BunnClient(object):
         self.plugin_manager = pm
         self.start_listening_time = 0
 
+        self.multistream_silence = False
+
     '''
     BunnClient.main
     Args:
@@ -56,7 +58,9 @@ class BunnClient(object):
         print ("Connected!")
         reader = asyncio.Task(self.console.read_console())
         plugins = asyncio.Task(self.plugin_manager.on_update())
+
         await asyncio.sleep(0.1)
+        #await Bunn.ping()
         print("\n")
         #await self.plugin_manager.on_init()
         self.start_listening_time = time.time()
@@ -71,6 +75,7 @@ class BunnClient(object):
 
             await asyncio.sleep(0.1)
             #print("GO!")
+
 
     '''
     BunnClient.close
@@ -111,6 +116,29 @@ class BunnClient(object):
                 print("Received message ID: {}".format(data[0]))
                 # We snip off the first byte and save the rest of the data for later.
                 data = data[1:]
+
+                # ID: 14; Multistream
+                # Sent when we're receiving an update on Multistream status.
+                # We're putting this at the top so that way we can check if we need to
+                # silence BunnBot.
+                if (message_type_id == Bytes.b_Multistream[0]):
+                    msg = chat_pb2.Multistream()
+                    msg.ParseFromString(data)
+                    # Check if we're the only one in the multistream.
+                    if (len(msg.guests) == 1):
+                        # If we are, we'll re-enable BunnBot.
+                        self.multistream_silence = False
+                        return
+                    # If we're  NOT the host, or if we ARE the host and disabled multistream,
+                    elif (msg.host.channel != C.channel_id or (msg.host.channel == C.channel_id and C.enable_multistream == False)):
+                        # then we want to set BunnBot to silent mode.
+                        self.multistream_silence = True
+                        return
+
+                # If we're multistreaming, and we're supposed to be quiet, then let's bail.
+                if (self.multistream_silence == True):
+                    return
+
                 # ID: 0; Admin Control
                 # These are messages sent by the admins of Picarto.
                 # Hopefully you'll never need this.
@@ -120,7 +148,7 @@ class BunnClient(object):
                     print("Admin control: " + str(msg.message_type))
                 # ID: 1; Ban
                 # The message sent by the server when a ban has taken place.
-                if (message_type_id == Bytes.b_Ban[0]):
+                elif (message_type_id == Bytes.b_Ban[0]):
                     msg = chat_pb2.Ban()
                     msg.ParseFromString(data)
 
@@ -133,7 +161,7 @@ class BunnClient(object):
                     print("{0} has been {1} by {2}".format(msg.display_name,ban_str,msg.executioner_display_name))
                 # ID: 2; Chat Message
                 # This is what we do when we read a chat message
-                if (message_type_id == Bytes.b_ChatMessage[0]):
+                elif (message_type_id == Bytes.b_ChatMessage[0]):
                     msg = chat_pb2.ChatMessage()
                     msg.ParseFromString(data)
 
@@ -154,63 +182,65 @@ class BunnClient(object):
                         print(printable)
                 # ID: 3; Clear History
                 # Occurs whenever the history has been cleared.
-                if (message_type_id == Bytes.b_ClearHistory[0]):
+                elif (message_type_id == Bytes.b_ClearHistory[0]):
                     msg = chat_pb2.ClearHistory()
                     msg.ParseFromString(data)
                     await self.plugin_manager.on_event(Bytes.b_ClearHistory,msg)
                     print("{0} has cleared the history".format(msg.executioner_display_name))
                 # ID: 4; Clear User Message
                 # Occurs whenever someone clears the messages of a specified user
-                if (message_type_id == Bytes.b_ClearUserMessages[0]):
+                elif (message_type_id == Bytes.b_ClearUserMessages[0]):
                     msg = chat_pb2.ClearUserMessages()
                     msg.ParseFromString(data)
                     await self.plugin_manager.on_event(Bytes.b_ClearUserMessages,msg)
                     print("All messages by {0} have been cleared".format(msg.username))
                 # ID: 7; Control
-                if (message_type_id == Bytes.b_Control[0]):
+                elif (message_type_id == Bytes.b_Control[0]):
                     msg = chat_pb2.Control()
                     msg.ParseFromString(data)
                     await self.plugin_manager.on_event(Bytes.b_Control,msg)
                     #print(message.message_type)
                 # ID: 10; Kick
                 # This message occurs when a user has been kicked.
-                if (message_type_id == Bytes.b_Kick[0]):
+                elif (message_type_id == Bytes.b_Kick[0]):
                     msg = chat_pb2.Kick()
                     msg.ParseFromString(data)
                     await self.plugin_manager.on_event(Bytes.b_Kick,msg)
                     print("User {0} has been kicked by {1}".format(msg.display_name, msg.executioner_display_name))
                 # ID: 16; Online State
                 # This is called periodically to get the status of the channel we're connected to.
-                if (message_type_id == Bytes.b_OnlineState[0]):
+                elif (message_type_id == Bytes.b_OnlineState[0]):
                     msg = chat_pb2.OnlineState()
                     msg.ParseFromString(data)
                     await self.plugin_manager.on_event(Bytes.b_OnlineState,msg)
                     print("Channel status:")
                     print("{0} | Is live: {1} | {2} viewer(s)".format(msg.channel_name, msg.is_live, msg.viewers))
+                    # We'll kindly let Picarto know we're still listening.
+                    await Bunn.ping()
                 # ID: 17; Poll Init
                 # Called when a poll has been initialized. Both a Client->Server and Server->Client call
-                if (message_type_id == Bytes.b_PollInit[0]):
+                elif (message_type_id == Bytes.b_PollInit[0]):
                     msg = chat_pb2.PollInit()
                     msg.ParseFromString(data)
                     await self.plugin_manager.on_event(Bytes.b_PollInit,msg)
                     print("Poll has begun! \"{0}\"\n{1}".format(msg.question,msg.options))
                 # ID: 18; Poll Result
                 # Called when the poll result is sent
-                if (message_type_id == Bytes.b_PollResult[0]):
+                elif (message_type_id == Bytes.b_PollResult[0]):
                     msg = chat_pb2.PollResult()
                     msg.ParseFromString(data)
                     await self.plugin_manager.on_event(Bytes.b_PollResult,msg)
                     print("Poll has ended!")
                 # ID: 23; Raffle Run
                 # Called when a raffle is run
-                if (message_type_id == Bytes.b_RaffleRun[0]):
+                elif (message_type_id == Bytes.b_RaffleRun[0]):
                     msg = chat_pb2.RaffleRun()
                     msg.ParseFromString()
                     await self.plugin_manager.on_event(Bytes.b_RaffleRun,msg)
                     print("Raffle has been run! Winner: {0}".format(msg.winner))
                 # ID: 24; Remove Message
                 # This is called whenever a message is removed.
-                if (message_type_id == Bytes.b_RemoveMessage[0]):
+                elif (message_type_id == Bytes.b_RemoveMessage[0]):
                     msg = chat_pb2.RemoveMessage()
                     msg.ParseFromString(data)
                     await self.plugin_manager.on_event(Bytes.b_RemoveMessage,msg)
@@ -218,21 +248,21 @@ class BunnClient(object):
                 # ID: 25; Server Message
                 # Activates whenever a server message is received.
                 # Server messages would be like a response for setting a timer, or reminder.
-                if (message_type_id == Bytes.b_ServerMessage[0]):
+                elif (message_type_id == Bytes.b_ServerMessage[0]):
                     msg = chat_pb2.ServerMessage()
                     msg.ParseFromString(data)
                     await self.plugin_manager.on_event(Bytes.b_ServerMessage,msg)
                     print("Server: {}".format(msg.message))
                 # ID: 26; Unban
                 # A message that occurs when a user has been unbanned from the chat
-                if (message_type_id == Bytes.b_Unban[0]):
+                elif (message_type_id == Bytes.b_Unban[0]):
                     msg = chat_pb2.UnBan()
                     msg.ParseFromString(data)
                     await self.plugin_manager.on_event(Bytes.b_Unban,msg)
                     print("{0} has been unbanned by {1}".format(msg.display_name, msg.executioner_display_name))
                 # ID: 27; User List
                 # Occurs whenever the user list is requested.
-                if (message_type_id == Bytes.b_UserList[0]):
+                elif (message_type_id == Bytes.b_UserList[0]):
                     msg = chat_pb2.UserList()
                     msg.ParseFromString(data)
                     self.user_list = msg.user
@@ -240,7 +270,7 @@ class BunnClient(object):
                     #print(self.user_list)
                 # ID: 28; Whisper
                 # This happens whenever a whisper is received (and sent?)
-                if (message_type_id == Bytes.b_Whisper[0]):
+                elif (message_type_id == Bytes.b_Whisper[0]):
                     msg = chat_pb2.Whisper()
                     msg.ParseFromString(data)
 
@@ -251,27 +281,27 @@ class BunnClient(object):
                         print("({0} {1}) [PSSST!] {2}: {3}".format(timestamp, "Local Time", msg.display_name, msg.message))
                 # ID: 30; Name Confirmation
                 # Kind of pointless, but we'll relay a message just in case we need it.
-                if (message_type_id == Bytes.b_NameConfirmation[0]):
+                elif (message_type_id == Bytes.b_NameConfirmation[0]):
                     msg = chat_pb2.NameConfirmation()
                     msg.ParseFromString(data)
                     print("Name Confirmation response: " + msg.response)
                 # ID: 33; Reminder
                 # Fires off whenever a reminder notification arrives.
-                if (message_type_id == Bytes.b_Reminder[0]):
+                elif (message_type_id == Bytes.b_Reminder[0]):
                     msg = chat_pb2.Reminder()
                     msg.ParseFromString(data)
                     await self.plugin_manager.on_event(Bytes.b_Reminder,msg)
                     print("Reminder: {}".format(msg.message))
                 # ID: 34; Timer
                 # Fires off whenever a timer notification arrives
-                if (message_type_id == Bytes.b_Timer[0]):
+                elif (message_type_id == Bytes.b_Timer[0]):
                     msg = chat_pb2.Timer()
                     msg.ParseFromString(data)
                     await self.plugin_manager.on_event(Bytes.b_Timer,msg)
                     print("Timer: {}".format(msg.message))
                 # ID: 36; Chat Level
                 # This just tells us the chat level of our room
-                if (message_type_id == Bytes.b_ChatLevel[0]):
+                elif (message_type_id == Bytes.b_ChatLevel[0]):
                     msg = chat_pb2.ChatLevel()
                     msg.ParseFromString(data)
                     await self.plugin_manager.on_event(Bytes.b_ChatLevel, msg)
@@ -294,7 +324,7 @@ class BunnClient(object):
                         print("Chat level: {}".format(clvl))
                 # ID: 39; User Count
                 # Is called whenever the user count is updated (user enters/exits)
-                if (message_type_id == Bytes.b_UserCount[0]):
+                elif (message_type_id == Bytes.b_UserCount[0]):
                     msg = chat_pb2.UserCount()
                     msg.ParseFromString(data)
                     # We'll update our user list appropriately.
@@ -304,19 +334,22 @@ class BunnClient(object):
                 # I've been informed that OCCASIONALLY the server will call PingPong to a client, and will
                 # expect a reply. I've tried to cover both bases, but I've never had it do this so it needs
                 # testing.
-                if (message_type_id == Bytes.b_PingPong[0]):
+                elif (message_type_id == Bytes.b_PingPong[0]):
                     msg = ret = chat_pb2.PingPong()
                     msg.ParseFromString(data)
-                    if msg.type == 0:
-                        ret.type = 1
-                    else:
-                        ret.type = 0
-                    await self.send_data(msg,Bytes.b_PingPong)
+                    #if msg.type == 0:
+                        #print("Ping!")
+                        #ret.type = 1
+                    #else:
+                        #print("Pong!")
+                        #ret.type = 0
+                    #await self.send_data(msg,Bytes.b_PingPong)
+                else:
+                    print("Unhandled message ID: {} (It's probably fine!)".format(message_type_id))
             else:
                 print("Closing.")
         except:
             raise
-
 
     '''
     BunnClient.get_message_from_id

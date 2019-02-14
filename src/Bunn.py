@@ -275,3 +275,8 @@ async def send_message(message):
     msg = chat_pb2.NewMessage()
     msg.message = message
     await _client.send_data(msg, Bytes.b_NewMessage)
+
+async def ping():
+    msg = chat_pb2.PingPong()
+    msg.type = 0
+    await _client.send_data(msg, Bytes.b_PingPong)

@@ -7,4 +7,5 @@ socket_url = ''
 api_url = ''
 api_v = ''
 command_char = ''
+enable_multistream = False
 version = "0.1"

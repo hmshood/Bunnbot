@@ -73,6 +73,7 @@ class PermissionAuthority():
         #    key = 0
         #print(args)
         #print(perms)
+        # BUG: crashes if permission doesn't exist, like if a user goes !status. "Status" itself does not have any permissions.
         key = args[0]
 
         #try:
