@@ -117,6 +117,8 @@ class BunnClient(object):
                 # We snip off the first byte and save the rest of the data for later.
                 data = data[1:]
 
+                '''
+
                 # ID: 14; Multistream
                 # Sent when we're receiving an update on Multistream status.
                 # We're putting this at the top so that way we can check if we need to
@@ -138,6 +140,7 @@ class BunnClient(object):
                 # If we're multistreaming, and we're supposed to be quiet, then let's bail.
                 if (self.multistream_silence == True):
                     return
+                '''
 
                 # ID: 0; Admin Control
                 # These are messages sent by the admins of Picarto.
