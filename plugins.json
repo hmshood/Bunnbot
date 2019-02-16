@@ -1,0 +1,7 @@
+{
+ "diceroller": "true",
+ "filter": "true",
+ "link_whitelist": "true",
+ "online_checker": "true",
+ "status": "true"
+}

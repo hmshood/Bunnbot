@@ -1,6 +1,7 @@
 {
   "link_whitelist":{
     "add":"streamer",
-    "remove":"streamer"
+    "remove":"streamer",
+    "help":"streamer"
   }
 }

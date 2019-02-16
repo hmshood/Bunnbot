@@ -5,22 +5,31 @@ class PermissionAuthority():
     def __init__(self):
         # Permissions formatting:
         #   command : permission level
+
+        # Need a better way to store it. This seems really jenky.
+        # What we're doing is we're shoving the JSON data from each plugin's permissions into
+        # the dictionary... But that doesn't seem right.
+
         self.permissions = {}
 
     def load_permissions(self, path, override = False):
         try:
             with open(path,'r') as perm_file:
                 jsondata = json.load(perm_file)
+                #print(jsondata)
                 for i in range(len(jsondata)):
                     key = list(jsondata.keys())[i]
                     if (key in self.permissions and override == False):
                         print("Warning: Permission definitions already exist for \"{}\". Skipping...".format(key))
                     else:
                         self.permissions[key] = jsondata[key]
+                        #print (key)
+                        #print (jsondata[key])
             print("Permissions loaded")
         except:
             print("Error loading permission file.")
             raise
+
 
     async def async_load_permissions(self, path, override=False):
         try:

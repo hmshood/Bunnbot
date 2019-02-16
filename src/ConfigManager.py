@@ -1,6 +1,6 @@
 import configparser
 import os
-from src import Consts as C
+from src import Config as C
 
 def load_configuration():
     cfg = configparser.ConfigParser()

@@ -8,7 +8,7 @@ import asyncio
 import sys
 import json
 from src import Bytes
-from src import Consts as C
+from src import Config as C
 from src import PermissionAuthority as PA
 from concurrent.futures import ThreadPoolExecutor
 
@@ -39,6 +39,15 @@ class PluginManager():
         plugin_name = ""
         plugin_files = os.listdir(plugin_folder)
         self.load_plugin_config()
+
+        # Load Bunnbot exclusive permissions.
+        # This takes priority over all other permissions.
+        path = os.path.join("./","permissions.json")
+        if not os.path.exists(path):
+            print ("FATAL ERROR: Bunnbot permissions.json missing in root directory. Exiting program.")
+            exit()
+        self.load_permissions("./",False)
+
         for i in plugin_files:
             path = os.path.join(plugin_folder, i)
 
@@ -157,6 +166,12 @@ class PluginManager():
             if (await permission_authority.check_permissions(msg.message,perm_level)):
                 has_authority = True
 
+            if (has_authority == True):
+                await self.handle_auth_command(msg.message)
+
+        if (C.enabled == False):
+            return
+
         for i in self.plugins:
             try:
                 if (code == Bytes.b_Ban and "on_ban" in dir(i)):
@@ -209,3 +224,43 @@ class PluginManager():
             except:
                 print("Unexpected plugin error: " + sys.exc_info()[0])
                 pass
+
+    '''
+    This function handles any bunnbot specific commands from the streamer.
+    These are hardcoded because we don't want a user to accidentally delete a
+    folder that handles core bunnbot functionality.
+
+    Might want to move this to another place in order to keep things organized.
+    Reason being: I want bunnbot to give feedback, but PluginManager doesn't use Bunn.py (as it should be purely for handling plugins).
+
+    Also might want to add a "status" command to whisper the silent/enabled status of Bunnbot.
+
+    NOTE: Disabling bunnbot (C.enabled = False) prevents it from sending ALL bytes as of right now -- as dictated by Client.send_data)
+    '''
+    async def handle_auth_command(self, msg):
+        msg = msg[1:].lower().split(" ")
+        if (len(msg) < 2 or msg[0] != "bunnbot"):
+            return
+        if (len(msg) > 2):
+            arg = msg[2]
+            if (msg[1] == "enabled"):
+                if (arg == "true" or arg == "1"):
+                    C.enabled = True
+                    print("AUTH COMMAND: Enabling Bunnbot")
+                elif (arg == "false" or arg == "0"):
+                    C.enabled = False
+                    print("AUTH COMMAND: Disabling Bunnbot")
+            elif (msg[1] == "silent"):
+                if (arg == "true" or arg == "1"):
+                    C.silent_mode = True
+                    print ("AUTH COMMAND: Enabling silent mode")
+                elif (arg == "false" or arg == "0"):
+                    C.silent_mode = False
+                    print ("AUTH COMMAND: Disabling silent mode")
+        else:
+            if (msg[1] == "enabled"):
+                C.enabled = not C.enabled
+                print ("AUTH COMMAND: enabled={}".format(C.enabled))
+            elif (msg[1] == "silent"):
+                C.silent_mode = not C.silent_mode
+                print("AUTH COMMAND: silent={}".format(C.silent_mode))

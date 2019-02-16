@@ -1,5 +1,5 @@
 from src import Bunn as B
-from src import Consts as C
+from src import Config as C
 import asyncio
 import os
 

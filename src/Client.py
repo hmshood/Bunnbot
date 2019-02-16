@@ -9,12 +9,15 @@ import websockets
 import traceback
 import time
 import datetime
-from src.bunnbot import Console
+
+# Bunnbot specific
+from src import Console
 from src import PluginManager
-from src import chat_pb2
 from src import Bunn
 from src import Bytes
-from src import Consts as C
+from src import Config as C
+from src.protocol import chat_pb2
+
 from google.protobuf.message import Message
 from concurrent.futures import ProcessPoolExecutor
 from contextlib import suppress
@@ -68,7 +71,10 @@ class BunnClient(object):
             #data = await self.websocket.recv()
             #print(data[0])
             #print("Loop!")
-            await self.listen()
+            try:
+                await self.listen()
+            except ConnectionResetError as e:
+                print (e)
 
             if reader == None:
                 reader = asyncio.Task(self.console.read_console())
@@ -219,7 +225,7 @@ class BunnClient(object):
                     print("Channel status:")
                     print("{0} | Is live: {1} | {2} viewer(s)".format(msg.channel_name, msg.is_live, msg.viewers))
                     # We'll kindly let Picarto know we're still listening.
-                    await Bunn.ping()
+                    #await Bunn.ping()
                 # ID: 17; Poll Init
                 # Called when a poll has been initialized. Both a Client->Server and Server->Client call
                 elif (message_type_id == Bytes.b_PollInit[0]):
@@ -434,6 +440,9 @@ class BunnClient(object):
     Else, if we can't do that, we'll throw an error.
     '''
     async def send_data(self, message, byte):
+        if (C.enabled == False):
+            return
+
         try:
             data = message.SerializeToString()
             data = byte+data

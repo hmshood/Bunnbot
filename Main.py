@@ -11,9 +11,9 @@ import traceback
 import time
 from src import PluginManager
 from src import ConfigManager
-from src.bunnbot import Client
+from src import Client
 from src import Bunn as B
-from src import Consts as C
+from src import Config as C
 from google.protobuf.message import Message
 from concurrent.futures import ProcessPoolExecutor
 from contextlib import suppress

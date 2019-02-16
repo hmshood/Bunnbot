@@ -1,10 +1,6 @@
 {
-  "filter": [
-    6,
-    {
-      "add":5,
-      "remove":"Moderator",
-      "help": 5
-    }
-  ]
+	"bot": {
+		"enabled": "streamer",
+		"silent": "streamer"
+	}
 }

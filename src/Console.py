@@ -4,7 +4,7 @@ import asyncio
 import traceback
 from aioconsole import ainput
 from concurrent.futures import ThreadPoolExecutor
-from src.bunnbot import Client
+from src import Client
 from src import Bunn as B
 
 _executor = ThreadPoolExecutor(2)

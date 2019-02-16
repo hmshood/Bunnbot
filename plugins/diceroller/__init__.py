@@ -2,8 +2,8 @@
 
 # TODO: We need some sort of config file to tell us what commands work for what level of people
 
+#from src import chat_pb2
 # These two imports are mandatory
-from src import chat_pb2
 from src import Bunn as B
 import asyncio
 

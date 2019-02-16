@@ -1,10 +1,10 @@
 # Python 3.6
 # This is the bunn API. These functions are for public use by plugins and other classes.
 
-from src import chat_pb2
+from src.protocol import chat_pb2
 from src import Bytes
-from src import Consts as C
-from src.bunnbot import Client
+from src import Config as C
+from src import Client                  # There's a circular dependency here...
 import asyncio
 
 _client = None
@@ -272,6 +272,10 @@ Args:
 Sends a regular message to the chat as the bot.
 '''
 async def send_message(message):
+    # If we're in silent mode, don't send any messages.
+    if C.silent_mode == True:
+        return
+
     msg = chat_pb2.NewMessage()
     msg.message = message
     await _client.send_data(msg, Bytes.b_NewMessage)

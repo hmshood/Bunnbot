@@ -1,8 +1,8 @@
 from src import Bunn as B
-from src import chat_pb2
+#from src.protocol import chat_pb2
 import asyncio
 
-from src import Consts as C
+from src import Config as C
 from datetime import datetime, timezone
 import requests
 
