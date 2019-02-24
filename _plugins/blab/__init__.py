@@ -1,11 +1,58 @@
-'''
-6.) YOINK. Dumb game which randomly picks a word said by a user into chat and lies in wait. When a user trips it, 
-the bot will call out YOINK. Randomly from the next few users who !yoink 'd , that player now have The Goods, 
-unbeknownst to the others. The Goods allow for that player to know what the trap word is. T
-he Good-holder's job is to trick other users into saying this word. To win,they must make other users trip the trap 5 times. 
-However, if someone is able to guess the work (!yoink trapWordHere), then the word is reset and the process repeats, 
-with the players keeping their Trap Trip score.
 
+import time
+import asyncio
+from src import Bunn as B
+#from src.bunnbot import Client
+
+class Player(self, msg):
+    def __init__
+        self.name = ""
+        self.score = 0
+        self.LastGuessTime = 0
+        self.isSpy = False
+
+trapWord = ""
+currThief = ""
+playerList = []    # List of objects. Each object will have: playername, score, lastGuessTime, isSpy
+minPlayers = 3
+guessCd = 5        # Measuresd in in seconds
+theifLimit = 300   # Also measured in seconds
+listenTime = 300
+minMesages = 20
+minLength = 3
+guessPenalty = -1  # Points lost to wrong guest over whispers
+winPoints = 5
+
+
+       
+
+
+def init():
+    pass
+  
+
+async def on_command(msg):
+  # Needed commands: Base, start, end, afk, help
+  msg = await sanitize_input(msg)
+  cmd = msg.message[1:].split(" ")
+  
+  
+async def on_message(msg):
+  
+  
+  
+  
+async def sanitize_input(msg):
+  try:
+    msg.message = parser.unescape(msg.message)
+    return msg
+  except:
+    print("Sanitization error.")
+  
+  
+  
+  
+'''
 1.) Have bot pick a random word that was said in chat (must not be any of the 100 most common words in English and longer than 2 letters)
 
 2.) Bot will signal the game has begun by saying into chat: The (spellbook/safe?) is/are up for grabs! Hurry, get it with: [ !yoink ]
@@ -30,13 +77,6 @@ with the players keeping their Trap Trip score.
 
 7.) Every time they get someone to say the word (or they do it themselves), the bot whispers their score to them.
 
-8.) The only things announced in public are the basic rules and whether or not the (?) is up for grabs
-
-
-    
-    
-
-
-
+8.) The only things announced in public are the basic rules and whether or not the (?) is up for grabs. As well as user guesses
 
 '''
