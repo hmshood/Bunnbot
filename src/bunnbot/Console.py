@@ -24,19 +24,19 @@ class BunnConsole(object):
     async def read_console(self):
         try:
             while (True):
-                data = await ainput(">>> ")
-                if not data:
-                    break
-                else:
-                    cmd = data.split(" ")[0].lower()
-                    data = data.replace(cmd, "", 1).replace(" ", "", 1)
-                    await self.handle_command(cmd,data)
+              data = await ainput()  
+              if not data:
+                  break
+              else:      
+                  cmd = data.split(" ")[0].lower()       
+                  data = data.replace(cmd, "", 1).replace(" ", "", 1)    
+                  await self.handle_command(cmd,data)  
 
-                await asyncio.sleep(0.1)
+              await asyncio.sleep(0.1)    
         except:
-            print("Oop! Something went wrong with the console.")
-            print(sys.exc_info())
-            raise
+          print("Oop! Something went wrong with the console.")
+          print(sys.exc_info())
+          raise
 
     '''
     BunnConsole.handle_command

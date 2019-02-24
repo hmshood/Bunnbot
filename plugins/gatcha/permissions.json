@@ -1,0 +1,13 @@
+{
+  "gatcha": 
+      {
+        "" : "everyone",
+        "open": "streamer",
+        "close": "streamer",
+        "phrase":"streamer",
+        "list": "everyone",
+        "reset": "streamer",
+        "spin": "streamer",
+        "add" : "streamer"
+      }      
+}

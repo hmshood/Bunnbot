@@ -7,6 +7,7 @@ import os
 import asyncio
 import sys
 from src import Bytes
+from src import Bunn as B
 from src import Consts as C
 from src import PermissionAuthority as PA
 from concurrent.futures import ThreadPoolExecutor
@@ -108,7 +109,7 @@ class PluginManager():
             await asyncio.sleep(0.1)
 
     async def on_event(self, code, msg):
-        has_authority = False
+        has_authority = False        
 
         if (code == Bytes.b_ChatMessage and msg.message[0] == C.command_char):
             perm_level = await permission_authority.get_permission_level(msg)

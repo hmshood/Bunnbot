@@ -205,7 +205,7 @@ class BunnClient(object):
                 # Called when a raffle is run
                 if (message_type_id == Bytes.b_RaffleRun[0]):
                     msg = chat_pb2.RaffleRun()
-                    msg.ParseFromString()
+                    msg.ParseFromString(data)
                     await self.plugin_manager.on_event(Bytes.b_RaffleRun,msg)
                     print("Raffle has been run! Winner: {0}".format(msg.winner))
                 # ID: 24; Remove Message
@@ -351,6 +351,7 @@ class BunnClient(object):
     Retrieves a user object from the list of users
     '''
     def get_user(self, username=None, uid=None):
+        print(len(self.user_list))
         if (len(self.user_list) == 0):
             print("User list is empty.")
             return None
@@ -401,6 +402,7 @@ class BunnClient(object):
         try:
             data = message.SerializeToString()
             data = byte+data
+            print(data)
             await self.websocket.send(data)
         except:
             print("Error sending data.")

@@ -245,7 +245,12 @@ Starts a raffle which incorporates the passed in list of names.
 '''
 async def raffle_init(names):
     msg = chat_pb2.RaffleInit()
-    msg.names = names
+    print("-----")
+    print(msg.names)
+    print(names)
+    print("<><><>")
+    #msg.names = names
+    msg.names.extend(names)
     await _client.send_data(msg,Bytes.b_RaffleInit)
 
 

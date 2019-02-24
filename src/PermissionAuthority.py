@@ -76,9 +76,10 @@ class PermissionAuthority():
         key = args[0]
 
         #try:
-        #    print(args[0])
-        #    print(perms)
-        #    print(perms[key])
+            #print(args[0])
+            #print(perms)
+            #print(perms[key])
+            #print(key)
         #except:
         #    pass
 
@@ -115,10 +116,14 @@ class PermissionAuthority():
     async def check_permissions(self, cmd, userlvl):
 
         # We'll cut off the ! from the command we're given.
-        cmd = cmd[1:]
-
+        cmd = cmd[1:]      
+        
         # split it into individual commands
         args = cmd.split(" ")
+        
+        if(len(args) == 1):
+            args.append("")
+            print(args)
 
         # We'll run retrieve_permission_level to get the permission level of the command
         permission = await self.retrieve_permission_level(self.permissions,args)

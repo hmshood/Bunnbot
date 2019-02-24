@@ -105,3 +105,6 @@ venv.bak/
 
 # BunnBot config files
 *.ini
+
+# glitch autosave
+watch.json
