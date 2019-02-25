@@ -1,5 +1,6 @@
 
 import time
+import random  # Need it to choose players
 import asyncio
 from src import Bunn as B
 #from src.bunnbot import Client
@@ -14,15 +15,16 @@ class Player(self, msg):
 trapWord = ""
 currThief = ""
 playerList = []    # List of objects. Each object will have: playername, score, lastGuessTime, isSpy
+isGameGoing = False
+isForGrabs = False # If the theif object has been taken
 minPlayers = 3
 guessCd = 5        # Measuresd in in seconds
 theifLimit = 300   # Also measured in seconds
-listenTime = 300
+listenTime = 100
 minMesages = 20
 minLength = 3
 guessPenalty = -1  # Points lost to wrong guest over whispers
 winPoints = 5
-
 
        
 
@@ -36,20 +38,106 @@ async def on_command(msg):
   msg = await sanitize_input(msg)
   cmd = msg.message[1:].split(" ")
   
+  if (cmd[0] == "blab"):
+      try:
+          if (lend(cmd == 1):
+              
+              
+          elif (lend(cmd > 1):
+              
+              
+              if (not trapWord):
+                  print("No trap word detected, gotta make one.")
+                  #Use word picking function
+
+              if (not playerList and not isGameGoing):
+                  print("Time to if nerds wanna play. Populate players.")
+                  await asyncio.sleep(15)
+                  #Hopefully enough players joined by the end of 15 seconds
+
+
+              if (len(playerList) < minPlayers and not isGameGoing):
+                  print("Too few players to begin. Stopping game.")
+              else:
+                  isGameGoing = True
+                  isUpForGrabs = True
+          
+          
+          
+          
+          
+          if (playerList and isGameGoing and isForGrabs):
+              print("Pick a random nerd from the player list and whisper the thief tutorial.")
+              print("Also say spooky things for the rest of the players in main chat.")
+              await asyncio.sleep(15)              
+              
+          elif (playerList and isGameGoing and not isForGrabs):
+              print("This is the main game loop. ")
+          
+          
+          
+              
+
+        
+        
+        
+      except:
+          print("Error in Blab minigame.")
+          print(sys.exc_info())
+          pass  
+      
+  
   
 async def on_message(msg):
+    pass
+  
+  
+
+async def chooseThief(users):
+    pass
   
   
   
-  
-async def sanitize_input(msg):
-  try:
+async def sanitize_input(msg, lower = False):
+  try:                
     msg.message = parser.unescape(msg.message)
+                
+    if (lower):
+        msg.message = msg.message.lower()
+                
     return msg
+                
   except:
     print("Sanitization error.")
   
-  
+'''
+
+    if (cmd[0].lower() == "gatcha"):
+        try:
+            if (len(cmd) == 1):     
+                    
+            elif (len(cmd) > 1):
+
+                if (len(cmd) > 2):   
+                       
+                      
+                elif (smallCmd == "reset"):
+                  
+                elif (smallCmd == "list"):
+                     
+                     
+                elif (smallCmd == "spin"):                  
+                    if (len(users) > 1):         
+                                      
+                else:
+                    await B.send_message("Sorry, '{0}' is an invalid {1} command".format(cmd[1], cmd[0].lower()))
+                                                                  
+        except:
+            print("Error in gatcha.")
+            print(sys.exc_info())
+            pass
+
+'''
   
   
 '''

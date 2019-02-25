@@ -1,5 +1,6 @@
 {
-  "gatcha": 
+  "gatcha": [
+      "everyone",
       {
         "" : "everyone",
         "open": "streamer",
@@ -9,5 +10,5 @@
         "reset": "streamer",
         "spin": "streamer",
         "add" : "streamer"
-      }      
-}
+      }]     
+

@@ -164,6 +164,7 @@ async def on_command(msg):
                               buffer += " {} ,".format(nerds)
                           buffer = buffer.strip(",")
                           await B.send_message(buffer)
+                          print(users)
 
                       else:
                           await B.send_message("There are no entrants to list.")
