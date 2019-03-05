@@ -12,6 +12,7 @@ import time
 from src import PluginManager
 from src import ConfigManager
 from src.bunnbot import Client
+from src.bunnbot import Console
 from src import Bunn as B
 from src import Consts as C
 from google.protobuf.message import Message
@@ -21,6 +22,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 _loop = asyncio.get_event_loop()
 _plugin_manager = PluginManager.PluginManager()
+_master_console = None
 
 
 
@@ -74,10 +76,18 @@ async def start():
         # Creating our Client object.
         client = Client.BunnClient(websocket, _loop,_plugin_manager)
         B._client = client
+        
+        _master_console = Console.BunnConsole()        
+        ###_client_sessions.append(client)         #TEST LINS, REMOVE IF WONKY (Maybe we call the console and from there call client?)
+        
         #asyncio.ensure_future(client.main())
         # Create our task
         task = asyncio.Task(client.main())
         #task.cancel()
+        
+        reader = asyncio.Task(_master_console.start_console())
+        ###reader = asyncio.Task(_master_console.read_console()) #More test lines        
+        
         with suppress (asyncio.CancelledError):
             # We await our task. So basically, we're stopping here for now while Client does the rest.
             await task
@@ -146,7 +156,12 @@ def main():
     else:
         print("Channel ID successfully retreived.")
         #asyncio.get_event_loop().set_debug(True)
-        _loop.run_until_complete(start())
+        
+        try:
+            _loop.run_until_complete(start())
+        except:
+            print("Connection Terminated?")
+            print(sys.exc_info())
 
 # And so it begins...
 main()
