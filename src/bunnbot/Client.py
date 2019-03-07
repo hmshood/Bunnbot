@@ -18,7 +18,6 @@ from src import Consts as C
 from google.protobuf.message import Message
 from concurrent.futures import ProcessPoolExecutor
 from contextlib import suppress
-from aioconsole import ainput
 from concurrent.futures import ThreadPoolExecutor
 
 class BunnClient(object):

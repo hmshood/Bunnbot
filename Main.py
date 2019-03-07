@@ -22,7 +22,8 @@ from concurrent.futures import ThreadPoolExecutor
 
 _loop = asyncio.get_event_loop()
 _plugin_manager = PluginManager.PluginManager()
-#_master_console = None
+
+_executor = ThreadPoolExecutor()
 
 '''
 start
@@ -75,15 +76,15 @@ async def start():
         client = Client.BunnClient(websocket, _loop,_plugin_manager)
         B._client = client
         
-        loop = asyncio.get_event_loop()      
+        # Define variables for command line interface seperate from all Client instances.
         _master_console = Console.BunnConsole(mode="Reader", intro="This is example", prompt="example> ")
+
+        try:
+            await _loop.run_in_executor(_executor, _master_console.start())
+        except KeyboardInterrupt:
+              print("Keyboard interrupt sent")
         
-        with ThreadPoolExecutor() as e:
-          try:
-              e.submit(_master_console.start, loop)
-          except KeyboardInterrupt:
-              print("Outie")
-        
+
         #asyncio.ensure_future(client.main())
         # Create our task
         task = asyncio.Task(client.main())
