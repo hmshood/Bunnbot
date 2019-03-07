@@ -22,9 +22,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 _loop = asyncio.get_event_loop()
 _plugin_manager = PluginManager.PluginManager()
-_master_console = None
-
-
+#_master_console = None
 
 '''
 start
@@ -77,20 +75,24 @@ async def start():
         client = Client.BunnClient(websocket, _loop,_plugin_manager)
         B._client = client
         
-        _master_console = Console.BunnConsole()        
-        ###_client_sessions.append(client)         #TEST LINS, REMOVE IF WONKY (Maybe we call the console and from there call client?)
+        loop = asyncio.get_event_loop()      
+        _master_console = Console.BunnConsole(mode="Reader", intro="This is example", prompt="example> ")
+        
+        with ThreadPoolExecutor() as e:
+          try:
+              e.submit(_master_console.start, loop)
+          except KeyboardInterrupt:
+              print("Outie")
         
         #asyncio.ensure_future(client.main())
         # Create our task
         task = asyncio.Task(client.main())
-        #task.cancel()
-        
-        reader = asyncio.Task(_master_console.start_console())
-        ###reader = asyncio.Task(_master_console.read_console()) #More test lines        
+        #task.cancel()              
         
         with suppress (asyncio.CancelledError):
             # We await our task. So basically, we're stopping here for now while Client does the rest.
             await task
+            
 
 '''
 get_channel_id_from_name

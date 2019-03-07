@@ -405,7 +405,7 @@ class BunnClient(object):
         try:
             data = message.SerializeToString()
             data = byte+data
-            print(data)
+            ###print(data)
             await self.websocket.send(data)
         except:
             print("Error sending data.")
