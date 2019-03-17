@@ -61,7 +61,7 @@ async def on_message(msg):
   #print(msg.message)
 
     
-  if (active and keyPhrase != "???" and msg.message.lower().find(keyPhrase.lower()) != -1 and msg.message[0] != "!"):
+  if (active and keyPhrase != "???" and msg.message.lower().find(keyPhrase.lower()) != -1 and msg.message[0] != "!" and not message.streamer):
       await addToRaffle(msg, False)
   elif (not active and keyPhrase != "???" and msg.message.lower().find(keyPhrase.lower()) != -1):
       await B.send_message("No open raffle to join yet!")      
@@ -259,7 +259,7 @@ async def output_phrase():
 "close":ok
 "clear": ok
 "help":
-"spin": CRITICAL
+"spin": ok
 "redo":
 "phrase":ok
 "add": ok

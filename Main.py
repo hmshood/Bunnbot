@@ -1,3 +1,4 @@
+#!/bin/sh
 # Python 3.6
 # (c) Alexander J. (KingCrazy) 2018
 # main
@@ -9,6 +10,7 @@ import asyncio
 import websockets
 import traceback
 import time
+import threading
 from src import PluginManager
 from src import ConfigManager
 from src.bunnbot import Client
@@ -20,10 +22,12 @@ from concurrent.futures import ProcessPoolExecutor
 from contextlib import suppress
 from concurrent.futures import ThreadPoolExecutor
 
+client_instances = {}
+
+_executor = ThreadPoolExecutor(2)
 _loop = asyncio.get_event_loop()
 _plugin_manager = PluginManager.PluginManager()
 
-_executor = ThreadPoolExecutor()
 
 '''
 start
@@ -76,24 +80,27 @@ async def start():
         client = Client.BunnClient(websocket, _loop,_plugin_manager)
         B._client = client
         
-        # Define variables for command line interface seperate from all Client instances.
-        _master_console = Console.BunnConsole(mode="Reader", intro="This is example", prompt="example> ")
-
-        try:
-            await _loop.run_in_executor(_executor, _master_console.start())
-        except KeyboardInterrupt:
-              print("Keyboard interrupt sent")
+        ### Define variables for command line interface seperate from all Client instances.
+        _master_console = Console.BunnConsole(mode="Reader", intro="[MASTER CONSOLE]", prompt=">>> ")
         
-
-        #asyncio.ensure_future(client.main())
-        # Create our task
         task = asyncio.Task(client.main())
-        #task.cancel()              
+        #task.cancel()
         
         with suppress (asyncio.CancelledError):
             # We await our task. So basically, we're stopping here for now while Client does the rest.
-            await task
-            
+            while(True):
+                try:
+                    await _loop.run_in_executor(_executor, _master_console.start, _loop)
+                    await task
+                except ConnectionResetError:
+                    print("Connection error.")
+                    print(sys.exc_info())
+                    continue
+                except:
+                    print("Unhandled exception awaiting bot TASK")
+                    print(sys.exc_info())
+                    break
+                    
 
 '''
 get_channel_id_from_name

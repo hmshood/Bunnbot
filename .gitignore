@@ -108,3 +108,5 @@ venv.bak/
 
 # glitch autosave
 watch.json
+
+BootClient.py

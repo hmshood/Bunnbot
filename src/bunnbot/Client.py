@@ -9,7 +9,6 @@ import websockets
 import traceback
 import time
 import datetime
-###from src.bunnbot import Console
 from src import PluginManager
 from src import chat_pb2
 from src import Bunn
@@ -19,6 +18,7 @@ from google.protobuf.message import Message
 from concurrent.futures import ProcessPoolExecutor
 from contextlib import suppress
 from concurrent.futures import ThreadPoolExecutor
+
 
 class BunnClient(object):
     __instance = None
@@ -54,24 +54,21 @@ class BunnClient(object):
     '''
     async def main(self):
         print ("Connected!")
-        ###reader = asyncio.Task(self.console.read_console())
         plugins = asyncio.Task(self.plugin_manager.on_update())
         await asyncio.sleep(0.1)
-        ###print("\n")
         #await self.plugin_manager.on_init()
         self.start_listening_time = time.time()
+        
+        
+        
         while (True):
             #data = await self.websocket.recv()
             #print(data[0])
             #print("Loop!")
-              
             await self.listen()
-
             await asyncio.sleep(0.1)
-            ###if reader == None:
-            ###    reader = asyncio.Task(self.console.read_console())
-
-                
+            
+              
             #print("GO!")
 
     '''
@@ -404,7 +401,6 @@ class BunnClient(object):
         try:
             data = message.SerializeToString()
             data = byte+data
-            ###print(data)
             await self.websocket.send(data)
         except:
             print("Error sending data.")
