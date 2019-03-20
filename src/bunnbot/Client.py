@@ -40,7 +40,7 @@ class BunnClient(object):
         self.is_timer_set = False
 
         #self.console = Console.BunnConsole(self, loop)
-        self.console = False
+        self.console = False ###change this later when console decoupled from code
 
         self.plugin_manager = pm
         self.start_listening_time = 0

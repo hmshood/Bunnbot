@@ -88,19 +88,12 @@ async def start():
         
         with suppress (asyncio.CancelledError):
             # We await our task. So basically, we're stopping here for now while Client does the rest.
-            while(True):
-                try:
-                    await _loop.run_in_executor(_executor, _master_console.start, _loop)
-                    await task
-                except ConnectionResetError:
-                    print("Connection error.")
-                    print(sys.exc_info())
-                    continue
-                except:
-                    print("Unhandled exception awaiting bot TASK")
-                    print(sys.exc_info())
-                    break
-                    
+            try:
+                #await _loop.run_in_executor(_executor, _master_console.start, _loop)
+                await task
+            except:
+                print("Unhandled exception awaiting bot TASK")
+                print(sys.exc_info())
 
 '''
 get_channel_id_from_name
@@ -166,12 +159,20 @@ def main():
     else:
         print("Channel ID successfully retreived.")
         #asyncio.get_event_loop().set_debug(True)
-        
+       
+    while (True):
         try:
             _loop.run_until_complete(start())
+        except (ConnectionResetError, ConnectionClosed):
+            print("Connection error.")
+            print(sys.exc_info())
+            print("Restarting...")
+
+            continue
         except:
             print("Connection Terminated?")
             print(sys.exc_info())
+            break
 
 # And so it begins...
 main()

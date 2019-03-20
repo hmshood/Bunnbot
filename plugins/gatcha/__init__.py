@@ -61,7 +61,7 @@ async def on_message(msg):
   #print(msg.message)
 
     
-  if (active and keyPhrase != "???" and msg.message.lower().find(keyPhrase.lower()) != -1 and msg.message[0] != "!" and not message.streamer):
+  if (active and keyPhrase != "???" and msg.message.lower().find(keyPhrase.lower()) != -1 and msg.message[0] != "!" and not msg.streamer):
       await addToRaffle(msg, False)
   elif (not active and keyPhrase != "???" and msg.message.lower().find(keyPhrase.lower()) != -1):
       await B.send_message("No open raffle to join yet!")      
@@ -175,8 +175,16 @@ async def on_command(msg):
                         await addToRaffle(cmd, True, msg)     # Format: (Prased command split into pieces, Is forced, Raw message object)               
                     else:
                         await B.send_message("Improper input! Please try again using: '{0} {1} @<username>' for named entrants or '{0} {1} #<name>' for anonymous ones!".format(cmd[0], cmd[1]))
-                                             
+                
+                
+                elif (smallCmd == "remove"):
+                    if (len(cmd) == 3):
+                        await removeFromRaffle(cmd[2].title())
+                    else:
+                        await B.send_message("Improper input! Try again using the format of: '{0} {1} username'!".format(cmd[0], cmd[1]))
+                
                    
+                  
                 elif (smallCmd == "spin"):
                     #print(users)
                   
@@ -239,7 +247,25 @@ async def addToRaffle(natural, forced, forceInfo = ""):
     
     await B.send_message(buffer)
     
-        
+
+async def removeFromRaffle(name):
+    global users
+    
+    if (name.startswith("@")):
+        name = name.lstrip("@")      
+    elif(name.startswith("#")):
+        name = name.lstrip("#")
+    
+    for nerds in users:
+        if (name.lower() == nerds.lower()):
+            users.remove(nerds)
+            await asyncio.sleep(0.1)
+            await B.send_message("{} has successfully been removed from the raffle.".format(nerds))
+            return
+    
+    await asyncio.sleep(0.1)
+    await B.send_message("Could not find the name \"{}\" among the entrants.".format(name))
+    
     
 async def sanitize_input(msg):
   try:
