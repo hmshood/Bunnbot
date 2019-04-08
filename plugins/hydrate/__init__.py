@@ -20,7 +20,6 @@ async def on_command(msg):
       else:
           started = True
           await B.send_picarto_command("/reminder 1h")
-          await asyncio.sleep(1)
           await B.send_message("Break reminder activated! See you in an hour!")
   
   

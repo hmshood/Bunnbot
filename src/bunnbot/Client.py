@@ -55,7 +55,7 @@ class BunnClient(object):
     async def main(self):
         print ("Connected!")
         plugins = asyncio.Task(self.plugin_manager.on_update())
-        await asyncio.sleep(0.1)
+        ###await asyncio.sleep(0.1)
         #await self.plugin_manager.on_init()
         self.start_listening_time = time.time()
         
@@ -65,8 +65,14 @@ class BunnClient(object):
             #data = await self.websocket.recv()
             #print(data[0])
             #print("Loop!")
-            await self.listen()
-            await asyncio.sleep(0.1)
+            try:
+                await self.listen()
+                await asyncio.sleep(0.1)
+            except (ConnectionResetError, ConnectionClosed):
+                print("CONNECTION LOST. RECONNECTING...")
+                print(sys.exc_info())
+                await self.reconnect()
+                
             
               
             #print("GO!")
@@ -407,5 +413,8 @@ class BunnClient(object):
             print(sys.exc_info()[0])
 
     async def print_override(self, text):
-        if (self.console):
+        if (not self.console):
             print(text)
+            
+    async def reconnect(self):
+        self.socket = await websockets.connect(C.socket_url.format(token))

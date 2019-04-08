@@ -17,7 +17,7 @@ class PermissionAuthority():
                         print("Warning: Permission definitions already exist for \"{}\". Skipping...".format(key))
                     else:
                         self.permissions[key] = jsondata[key]
-                        print(self.permissions[key])
+                        ###print(self.permissions[key])
             print("Permissions loaded")
         except:
             print("Error loading permission file.")
@@ -29,7 +29,7 @@ class PermissionAuthority():
                 jsondata = json.load(perm_file)
                 for i in range(len(jsondata)):
                     key = list(jsondata.keys())[i]                    
-                    print(key)
+                    ###print(key)
                     if (key in self.permissions and override == False):
                         print("Warning: Permission definitions already exist for \"{}\". Skipping...".format(key))
                     else:

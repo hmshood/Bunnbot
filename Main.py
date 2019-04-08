@@ -81,7 +81,7 @@ async def start():
         B._client = client
         
         ### Define variables for command line interface seperate from all Client instances.
-        _master_console = Console.BunnConsole(mode="Reader", intro="[MASTER CONSOLE]", prompt=">>> ")
+        ###_master_console = Console.BunnConsole(mode="Reader", intro="[MASTER CONSOLE]", prompt=">>> ")
         
         task = asyncio.Task(client.main())
         #task.cancel()

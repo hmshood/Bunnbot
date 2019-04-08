@@ -67,6 +67,12 @@ async def on_message(msg):
       await B.send_message("No open raffle to join yet!")      
 
       
+async def on_raffle_run(msg):
+    await asyncio.sleep(10)
+    await B.send_message(":tada: Congrats, @{} you've won the raffle! :tada:".format(msg.winner))
+  
+  
+  
 async def on_command(msg):
     global users
     global active
@@ -183,7 +189,10 @@ async def on_command(msg):
                     else:
                         await B.send_message("Improper input! Try again using the format of: '{0} {1} username'!".format(cmd[0], cmd[1]))
                 
-                   
+                
+                elif (smallCmd == "leave"):
+                      await removeFromRaffle(msg.display_name.title())
+                  
                   
                 elif (smallCmd == "spin"):
                     #print(users)
@@ -193,13 +202,16 @@ async def on_command(msg):
                         
                         #sendToSpin = " ".join(users)
                         print(users)
-                        await asyncio.sleep(1)
+                        await asyncio.sleep(3)
                         await B.raffle_init(users)
+
                     elif (len(users) <= 1):
                         await B.send_message("Sorry, but there aren't enough users for a raffle! You need at least 2 people!")
                 
                 else:
                     await B.send_message("Sorry, '{0}' is an invalid {1} command".format(cmd[1], cmd[0].lower()))
+                    
+                
                                              
                                              
         except:
@@ -248,6 +260,8 @@ async def addToRaffle(natural, forced, forceInfo = ""):
     await B.send_message(buffer)
     
 
+    
+    
 async def removeFromRaffle(name):
     global users
     
@@ -259,12 +273,12 @@ async def removeFromRaffle(name):
     for nerds in users:
         if (name.lower() == nerds.lower()):
             users.remove(nerds)
-            await asyncio.sleep(0.1)
             await B.send_message("{} has successfully been removed from the raffle.".format(nerds))
             return
     
-    await asyncio.sleep(0.1)
     await B.send_message("Could not find the name \"{}\" among the entrants.".format(name))
+    
+
     
     
 async def sanitize_input(msg):
@@ -289,9 +303,9 @@ async def output_phrase():
 "redo":
 "phrase":ok
 "add": ok
-"remove":
+"remove": ok
 "blacklist": 
-"leave" (for participants)
+"leave" (for participants): ok
 cooldown system
 persistent tracking
 '''
