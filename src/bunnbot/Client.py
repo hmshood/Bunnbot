@@ -60,7 +60,6 @@ class BunnClient(object):
         self.start_listening_time = time.time()
         
         
-        
         while (True):
             #data = await self.websocket.recv()
             #print(data[0])
@@ -68,11 +67,14 @@ class BunnClient(object):
             try:
                 await self.listen()
                 await asyncio.sleep(0.1)
-            except (ConnectionResetError, ConnectionClosed):
+                
+            except websockets.exceptions.ConnectionClosed:
                 print("CONNECTION LOST. RECONNECTING...")
-                print(sys.exc_info())
+                #print(sys.exc_info())
                 await self.reconnect()
                 
+                if (self.websocket is None):                  
+                    raise
             
               
             #print("GO!")
@@ -113,7 +115,7 @@ class BunnClient(object):
 
                 # We'll grab the first byte from the data... aka our message ID
                 message_type_id = data[0]
-                await self.print_override("Received message ID: {}".format(data[0]))
+                await self.print_override("({0} UST) Received message ID: {1}".format(datetime.datetime.now().strftime("%X"), data[0]))
                 # We snip off the first byte and save the rest of the data for later.
                 data = data[1:]
                 # ID: 0; Admin Control
@@ -190,8 +192,8 @@ class BunnClient(object):
                     msg = chat_pb2.OnlineState()
                     msg.ParseFromString(data)
                     await self.plugin_manager.on_event(Bytes.b_OnlineState,msg)
-                    await self.print_override("Channel status:")
-                    await self.print_override("{0} | Is live: {1} | {2} viewer(s)".format(msg.channel_name, msg.is_live, msg.viewers))
+                    ###await self.print_override("Channel status:")
+                    ###await self.print_override("{0} | Is live: {1} | {2} viewer(s)".format(msg.channel_name, msg.is_live, msg.viewers))
                 # ID: 17; Poll Init
                 # Called when a poll has been initialized. Both a Client->Server and Server->Client call
                 if (message_type_id == Bytes.b_PollInit[0]):
@@ -417,4 +419,19 @@ class BunnClient(object):
             print(text)
             
     async def reconnect(self):
-        self.socket = await websockets.connect(C.socket_url.format(token))
+        for i in range(10):
+            print("Reconnection attempt: {}...".format(i))
+            req = requests.get(C.api_url + C.api_v + 'user/jwtkey', headers={'Authorization': 'Bearer {}'.format(C.access_token)}, params={'channel_id':C.channel_id, 'bot':'true'})
+            code = req.status_code
+            token = req.text
+            
+            if (code == 200):
+                print("Re-Authentication successful. Connecting to websocket...")
+                break
+            elif (i == 9):
+                print("Could not reconnect to server. Closing client...")
+                self.close()
+                self.websocket = None
+                return
+                
+        self.websocket = await websockets.connect(C.socket_url.format(token))

@@ -1,5 +1,6 @@
 {
-  "gatcha": 
+  "gatcha": [
+      "everyone",
       {
         "" : "everyone",
         "open": "streamer",
@@ -12,5 +13,6 @@
         "leave" : "everyone",
         "remove" : "streamer"
       }
+]
 }
 

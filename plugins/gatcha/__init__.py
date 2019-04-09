@@ -1,5 +1,7 @@
 import sys
 import asyncio
+import datetime
+from pytz import timezone
 from src import Bunn as B
 import html.parser as htmlparser
 
@@ -68,7 +70,8 @@ async def on_message(msg):
 
       
 async def on_raffle_run(msg):
-    await asyncio.sleep(10)
+    await score(msg.winner)
+    await asyncio.sleep(8)
     await B.send_message(":tada: Congrats, @{} you've won the raffle! :tada:".format(msg.winner))
   
   
@@ -279,7 +282,7 @@ async def removeFromRaffle(name):
     await B.send_message("Could not find the name \"{}\" among the entrants.".format(name))
     
 
-    
+
     
 async def sanitize_input(msg):
   try:
@@ -293,6 +296,61 @@ async def sanitize_input(msg):
 async def output_phrase():
     await asyncio.sleep(1)
     await B.send_message("The key phrase is: [ {} ]".format(keyPhrase))
+    
+    
+    
+async def score(name):  
+  peek = ""
+  found = False
+  
+  score = open("scoreboard.txt", "r")  
+  temp = open("temp.txt", "w") 
+  
+  eastern = timezone('US/Eastern')
+  date_east = datetime.datetime.now(eastern)
+  
+  date = datetime.datetime.now()
+  date = "{0}, {1}/{2}/{3}, {4}:{5} {6} ({7}:{8} {9} EST)".format(
+  date.strftime("%A"), date.strftime("%B"), date.strftime("%d"), date.strftime("%Y"), 
+  date.strftime("%I"), date.strftime("%M"), date.strftime("%p"), 
+  date_east.strftime("%I"), date_east.strftime("%M"), date_east.strftime("%p"))
+  
+  temp.seek(0)
+  temp.truncate()
+
+  for line in score:
+      if (line.strip() == name):
+          found = True
+          temp.write(name + "\n")
+          peek = score.readline()
+          pip = 1 
+
+          while (len(peek) > 0 and peek[0].isdigit() and peek.startswith(".) ", 1)):
+              temp.write(peek)
+              pip = str(int(peek[0]) + 1)
+              peek = score.readline()
+
+          temp.write(str(pip) + ".) " + date + "\n")
+          temp.write(peek)
+          
+          if (int(pip) > 32):
+              return
+  
+      else:
+          temp.write(line)
+        
+  if (found == False):
+      temp.write("\n" + name + "\n1.) " + date + "\n")
+          
+  temp.close()   
+  temp =  open("temp.txt", "r") 
+  
+  score.close()
+  score = open("scoreboard.txt", "w")  
+
+  score.write(temp.read())
+  score.close()
+  temp.close()
 
 '''             
 "open":ok

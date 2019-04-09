@@ -1,0 +1,11 @@
+[] Figure out how much delay is needed between sending picarto messages
+[] Find a way to output messages even when users send commands at the same time (race condition issue, maybe?)
+[] Successfully impliment instanciation (allow to join multiple channels at once, all with different clients)
+   [] Implement manual calling/instanciation of bot on its own channel
+   [] Remember users who have subscribed to the bot
+   [] Create Admin Bot, which will be a self-bot that ONLY has commands/plugins that require Premium or Streamer access.
+[] Prevent race condition by not writing if temp and main score files have different lengths of characters
+   [] Properly untouched files will have the same length as the temporary file
+   
+   
+   for C.Ds: https://docs.python.org/3/library/datetime.html#datetime.timedelta

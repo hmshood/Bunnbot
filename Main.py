@@ -163,16 +163,21 @@ def main():
     while (True):
         try:
             _loop.run_until_complete(start())
-        except (ConnectionResetError, ConnectionClosed):
+            #(websockets.ConnectionResetError, websockets.ConnectionClosed):
+        except websockets.exceptions.ConnectionClosed:
             print("Connection error.")
             print(sys.exc_info())
             print("Restarting...")
-
             continue
+            
+        except KeyboardInterrupt:
+            print("Keyboard Interrupt. Now exiting.")    
+            break
         except:
             print("Connection Terminated?")
             print(sys.exc_info())
             break
-
+            
+        
 # And so it begins...
 main()

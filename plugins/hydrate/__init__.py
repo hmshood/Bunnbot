@@ -2,10 +2,11 @@ from src import Bunn as B
 #from src.bunnbot import Client
 import asyncio
 
-started = False
+started = True
 
 def init():
     pass
+
 
 async def on_command(msg):
     global started
