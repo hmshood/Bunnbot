@@ -58,7 +58,7 @@ class BunnClient(object):
         ###await asyncio.sleep(0.1)
         #await self.plugin_manager.on_init()
         self.start_listening_time = time.time()
-        
+        lastData = time.time()
         
         while (True):
             #data = await self.websocket.recv()
@@ -435,3 +435,4 @@ class BunnClient(object):
                 return
                 
         self.websocket = await websockets.connect(C.socket_url.format(token))
+        self.start_listening_time = time.time()

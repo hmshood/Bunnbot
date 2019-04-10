@@ -2,7 +2,7 @@ from src import Bunn as B
 #from src.bunnbot import Client
 import asyncio
 
-started = True
+started = False
 
 def init():
     pass

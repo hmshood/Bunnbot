@@ -1,2 +1,4 @@
 #!/bin/bash
-nohup python3 Main.py 1>> logs.txt
+check=`ps -ef|grep Main.py\$`
+if [ -n "$check" ]; then `nohup python3 Main.py >> logs.txt`; else echo "Script is already running." ; fi
+sleep 1800
