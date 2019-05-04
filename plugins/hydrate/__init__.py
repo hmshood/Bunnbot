@@ -1,36 +1,137 @@
-from src import Bunn as B
-#from src.bunnbot import Client
+import sys
 import asyncio
+from src import Bunn as B
+import datetime
+from datetime import timedelta
 
 started = False
+lastCall = datetime.datetime.now()
+testCall = None
+conversion = "%Y-%m-%d %H:%M:%S.%f"
 
 def init():
-    pass
+    global lastCall
+    global started
+    global conversion
+    
+    if (not started):
+        f = open("timestamp.txt", "r+")
+        hold = f.read()
+        #print("Hold: {0}, Length: {1}".format(hold, len(hold)))
+
+        if (len(hold) > 10): 
+            f.seek(0)
+            lastCall = f.readline().rstrip()
+            #hold = bool(f.readline())
+
+            #if (hold is True):
+            started = True
+            #f.seek(0)
+            #f.truncate()                
+            #f.write("{0}\n{1}".format(lastCall))#, str(started)))
+
+        """
+        elif (len(hold) <= 10):            
+            lastCall = datetime.datetime.strftime(lastCall, conversion)
+
+            f.seek(0)
+            f.truncate()  
+            f.write("{0}\n{1}".format(lastCall, str(started)))
+            
+        f.close()
+        """
 
 
 async def on_command(msg):
     global started
+    global lastCall    
     
-  
-    cmd = msg.message[1:].split(" ")
-    
-    if (cmd[0] == "hydrate"):    
-      if (started):
-          started = False
-          await B.send_message("Break reminder is now OFF.")
-      else:
-          started = True
-          await B.send_picarto_command("/reminder 1h")
-          await B.send_message("Break reminder activated! See you in an hour!")
-  
-  
-async def on_reminder(msg):
-    try:
-        global started
+    try:  
+        cmd = msg.message[1:].split(" ")
 
-        if(started):      
-            await B.send_message("Remember to save, stretch, and hydrate!")
+        if (cmd[0] == "hydrate"):   
+            t = open("timestamp.txt", "r+")
+            #temp = t.readline().rstrip()  
+            
+            t.seek(0)
+            t.truncate()     
+            
+            if (started):
+                started = False
+                await B.send_message("Break reminder is now OFF.")
+            elif (not started):          
+                started = True
+                t.write("{0}\n{1}".format(datetime.datetime.now()))#, str(started)))
+
+                await B.send_message("Break reminder activated! See you in an hour!")
+                
+            #print("Command status:")
+            #print(started)
+            
+            t.close()
+                
     except:
-        print("Error in reminder")
+        print("Error in reminder command code")
+        print(sys.exc_info())
+        
+        
+  
+async def on_online_state(msg):
+    ready = ""
     
+    try:    
+        ready = await check_time()   
+            
+        if (ready and started):
+            await B.send_message("Remember to save, stretch, and hydrate!")
+        elif (not started):
+            print("Reminder not started.")
+        else:
+            print("Reminder not ready. Waiting for next call....")
+            
+    except:
+        print("Error in reminder control code")
+        print(sys.exc_info())
+
+        
+async def check_time():
+    global started
+    global lastCall
+    global testCall
+    global conversion
+    #print("Checking time...")
+    
+    try:    
+        #print("Converting time")
+        
+        if (type(lastCall) is str):
+            testCall = datetime.datetime.strptime(lastCall, conversion)
+        else:
+            testCall = lastCall
+            
+        #print("Current time:")
+        #print(datetime.datetime.now())
+        #print("SAVED time:")
+        #print(lastCall)
+        #print("Entering conditional...")
+    
+        if (started and (datetime.datetime.now() > (testCall + timedelta(seconds=3600)))):
+          
+            f = open("timestamp.txt", "w")
+            lastCall = datetime.datetime.now()
+            testCall = lastCall
+            f.write("{0}\n{1}".format(lastCall))#, str(started)))
+            f.close()
+
+            print(lastCall)
+            #print("Successful reminder")
+            return True
+        
+        else:
+            #print("Exited time check")
+            return False
+    
+    except:
+        print("Error in reminder time code")
+        print(sys.exc_info())
     

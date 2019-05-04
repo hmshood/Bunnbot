@@ -25,7 +25,6 @@ from concurrent.futures import ThreadPoolExecutor
 client_instances = {}
 user_info = []
 
-_executor = ThreadPoolExecutor(2)
 _loop = asyncio.get_event_loop()
 _plugin_manager = PluginManager.PluginManager()
 #<class 'websockets.exceptions.ConnectionClosed'>, ConnectionClosed('WebSocket connection is closed: code = 1001 (going away), no reason',), <traceback object at 0x7fa8ab45cf88>)
@@ -64,32 +63,42 @@ async def start():
         for line in f:
             name = f.read()
             user_info.append(name)
-                
-        f.close()  
-        for x in range(len(user_info)):
-            if (get_channel_id_from_name(user_info[x])):
-                  req = requests.get(C.api_url + C.api_v + 'user/jwtkey', headers={'Authorization': 'Bearer {}'.format(C.access_token)}, params={'channel_id':line, 'bot':'false'})
-                  token = req.text
+            
+    with ThreadPoolExecutor as gg:
+        try:
+            await gg.map(start_connection, user_info)
+        except:
+            print("Unhandled exception awaiting bot TASK")
+            print(sys.exc_info())
+        
+    '''   
+    for x in user_info:
+        if (get_channel_id_from_name(user_info[x])):
+            start_connection(user_info[x])
 
-                  async with websockets.connect(C.socket_url.format(token)) as websocket:
-                      # Creating our Client object.
-                      client = Client.BunnClient(websocket, _loop,_plugin_manager)
-                      B._client = client
-                      client_instances[line] = client
-                      user_info[line] = token
+    with ThreadPoolExecutor() as e:
+        try:
+            await e.submit(client.main(), client_instances)
 
-        with ThreadPoolExecutor(len(client_instances)) as e:
-            task = None
-            for client in client_instances:
-                task = e.submit(client.main())
-                with suppress (asyncio.CancelledError):
-                    try:
-                        await task
-                    except:
-                        print("Unhandled exception awaiting bot TASK")
-                        print(sys.exc_info())
+        except:
+            print("Unhandled exception awaiting bot TASK")
+            print(sys.exc_info())
+    '''
 
+            
+def start_connection(username):
+    get_channel_id_from_name(username)
+  
+    req = requests.get(C.api_url + C.api_v + 'user/jwtkey', headers={'Authorization': 'Bearer {}'.format(C.access_token)}, params={'channel_id':username, 'bot':'true'})
+    token = req.text
 
+    async with websockets.connect(C.socket_url.format(token)) as websocket:
+        # Creating our Client object.
+        client = Client.BunnClient(websocket, _loop,_plugin_manager)
+        B._client = client
+        client_instances[username] = token
+            
+            
 '''
 get_channel_id_from_name
 Args:

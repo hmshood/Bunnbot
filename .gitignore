@@ -107,4 +107,18 @@ venv.bak/
 *.ini
 
 # glitch autosave
-watch.json
+#watch.json
+#package.json
+#*.json
+
+# Constants 
+src/chat*
+src/con*
+src/Bytes.py
+
+#Shell Files
+*.sh
+
+#Extra Notes
+to-do*
+timestamp*

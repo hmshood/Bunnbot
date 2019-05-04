@@ -162,7 +162,7 @@ def main():
        
     while (True):
         try:
-            _loop.run_until_complete(start())
+            _loop.run_until_complete(start())            
             #(websockets.ConnectionResetError, websockets.ConnectionClosed):
         except websockets.exceptions.ConnectionClosed:
             print("Connection error.")
@@ -177,7 +177,10 @@ def main():
             print("Connection Terminated?")
             print(sys.exc_info())
             break
-            
+        finally:
+            print("Unexpected non-exception error. Now exiting to prevent infinite loop.")
+            print(sys.exc_info())
+            break
         
 # And so it begins...
 main()
