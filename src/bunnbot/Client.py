@@ -32,6 +32,8 @@ class BunnClient(object):
     def __init__(self, socket, loop, pm):
         self.websocket = socket
         self.eventloop = loop
+        self.connectTo = C.channel_id
+        self.token = C.access_token
 
         self.cmsgs = {}
         self.user_list = []
@@ -110,7 +112,9 @@ class BunnClient(object):
         try:
             #print ("Task count: " + str(len(asyncio.Task.all_tasks())))
             # Receiving data from the socket...
+            print("Waiting for data...")
             data = await self.websocket.recv()
+            print("???")
             if (data):
 
                 # We'll grab the first byte from the data... aka our message ID
@@ -421,7 +425,7 @@ class BunnClient(object):
     async def reconnect(self):
         for i in range(10):
             print("Reconnection attempt: {}...".format(i))
-            req = requests.get(C.api_url + C.api_v + 'user/jwtkey', headers={'Authorization': 'Bearer {}'.format(C.access_token)}, params={'channel_id':C.channel_id, 'bot':'true'})
+            req = requests.get(C.api_url + C.api_v + 'user/jwtkey', headers={'Authorization': 'Bearer {}'.format(self.token)}, params={'channel_id': self.connectTo, 'bot':'true'})
             code = req.status_code
             token = req.text
             

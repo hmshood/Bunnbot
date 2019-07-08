@@ -61,7 +61,7 @@ async def on_command(msg):
                 await B.send_message("Break reminder is now OFF.")
             elif (not started):          
                 started = True
-                t.write("{0}\n{1}".format(datetime.datetime.now()))#, str(started)))
+                t.write("{}".format(datetime.datetime.now()))#, str(started)))
 
                 await B.send_message("Break reminder activated! See you in an hour!")
                 
@@ -120,7 +120,7 @@ async def check_time():
             f = open("timestamp.txt", "w")
             lastCall = datetime.datetime.now()
             testCall = lastCall
-            f.write("{0}\n{1}".format(lastCall))#, str(started)))
+            f.write("{}".format(lastCall))#, str(started)))
             f.close()
 
             print(lastCall)

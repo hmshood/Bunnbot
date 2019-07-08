@@ -51,6 +51,8 @@ async def start():
     req = requests.get(C.api_url + C.api_v + 'user/jwtkey', headers={'Authorization': 'Bearer {}'.format(C.access_token)}, params={'channel_id':C.channel_id, 'bot':'true'})
     code = req.status_code
     token = req.text
+    
+    print(token)
 
     # Handle any status code errors we may have gotten from the GET request
     # We'll simply just return out of the function and end the program if we encounter anything
@@ -66,6 +68,9 @@ async def start():
         print ("*** Error ***")
         print("Code: 404\nThe channel {} does not exist.".format(cname))
         return
+      
+    print("code:")
+    print(code)
 
     print("Authentication successful: JWT Key successfully generated")
     print("Connecting to websocket . . .")
@@ -158,6 +163,7 @@ def main():
         print("Quitting...")
     else:
         print("Channel ID successfully retreived.")
+        print(C.channel_name)
         #asyncio.get_event_loop().set_debug(True)
        
     while (True):

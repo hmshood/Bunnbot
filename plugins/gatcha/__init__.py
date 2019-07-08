@@ -2,6 +2,7 @@ import sys
 import asyncio
 import datetime
 import tempfile
+import random
 from pytz import timezone
 from src import Bunn as B
 from src import Consts as C
@@ -285,10 +286,21 @@ async def on_command(msg):
                     if (len(users) > 1):                       
                         await B.send_message("Raffle spinning! Good luck, guys!")
                         
-                        #sendToSpin = " ".join(users)
+                        mixedUsers = users
+                        i = len(mixedUsers) - 1
+                        
                         print(users)
+                        print(mixedUsers)
+
+                        while (i > 0):
+                            toSwap = random.randint(0, i)
+                            temp = mixedUsers[i]
+                            mixedUsers[i] = mixedUsers[toSwap]
+                            mixedUsers[toSwap] = temp
+                            i -= 1
+
                         await asyncio.sleep(3)
-                        await B.raffle_init(users)
+                        await B.raffle_init(mixedUsers)
 
                     elif (len(users) <= 1):
                         await B.send_message("Sorry, but there aren't enough users for a raffle! You need at least 2 people!")
