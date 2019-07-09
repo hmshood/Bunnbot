@@ -109,12 +109,13 @@ class PluginManager():
             await asyncio.sleep(0.1)
 
     async def on_event(self, code, msg):
-        has_authority = False        
+        has_authority = False    
 
         if (code == Bytes.b_ChatMessage and msg.message[0] == C.command_char):
             perm_level = await permission_authority.get_permission_level(msg)
             if (await permission_authority.check_permissions(msg.message,perm_level)):
                 has_authority = True
+            
 
         for i in self.plugins:
             try:
@@ -165,6 +166,10 @@ class PluginManager():
                     asyncio.ensure_future( i.on_chat_level(msg))
                 if (code == Bytes.b_UserCount and "on_user_count" in dir(i)):
                     asyncio.ensure_future( i.on_user_count(msg))
+                    
+                    
             except:
                 print("Unexpected plugin error: " + sys.exc_info()[0])
                 pass
+
+""

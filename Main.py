@@ -1,3 +1,4 @@
+#!/bin/sh
 # Python 3.6
 # (c) Alexander J. (KingCrazy) 2018
 # main
@@ -9,9 +10,11 @@ import asyncio
 import websockets
 import traceback
 import time
+import threading
 from src import PluginManager
 from src import ConfigManager
 from src.bunnbot import Client
+from src.bunnbot import Console
 from src import Bunn as B
 from src import Consts as C
 from google.protobuf.message import Message
@@ -19,9 +22,11 @@ from concurrent.futures import ProcessPoolExecutor
 from contextlib import suppress
 from concurrent.futures import ThreadPoolExecutor
 
+client_instances = {}
+
+_executor = ThreadPoolExecutor(2)
 _loop = asyncio.get_event_loop()
 _plugin_manager = PluginManager.PluginManager()
-
 
 
 '''
@@ -46,6 +51,8 @@ async def start():
     req = requests.get(C.api_url + C.api_v + 'user/jwtkey', headers={'Authorization': 'Bearer {}'.format(C.access_token)}, params={'channel_id':C.channel_id, 'bot':'true'})
     code = req.status_code
     token = req.text
+    
+    print(token)
 
     # Handle any status code errors we may have gotten from the GET request
     # We'll simply just return out of the function and end the program if we encounter anything
@@ -61,6 +68,9 @@ async def start():
         print ("*** Error ***")
         print("Code: 404\nThe channel {} does not exist.".format(cname))
         return
+      
+    print("code:")
+    print(code)
 
     print("Authentication successful: JWT Key successfully generated")
     print("Connecting to websocket . . .")
@@ -74,13 +84,21 @@ async def start():
         # Creating our Client object.
         client = Client.BunnClient(websocket, _loop,_plugin_manager)
         B._client = client
-        #asyncio.ensure_future(client.main())
-        # Create our task
+        
+        ### Define variables for command line interface seperate from all Client instances.
+        ###_master_console = Console.BunnConsole(mode="Reader", intro="[MASTER CONSOLE]", prompt=">>> ")
+        
         task = asyncio.Task(client.main())
         #task.cancel()
+        
         with suppress (asyncio.CancelledError):
             # We await our task. So basically, we're stopping here for now while Client does the rest.
-            await task
+            try:
+                #await _loop.run_in_executor(_executor, _master_console.start, _loop)
+                await task
+            except:
+                print("Unhandled exception awaiting bot TASK")
+                print(sys.exc_info())
 
 '''
 get_channel_id_from_name
@@ -145,8 +163,30 @@ def main():
         print("Quitting...")
     else:
         print("Channel ID successfully retreived.")
+        print(C.channel_name)
         #asyncio.get_event_loop().set_debug(True)
-        _loop.run_until_complete(start())
-
+       
+    while (True):
+        try:
+            _loop.run_until_complete(start())            
+            #(websockets.ConnectionResetError, websockets.ConnectionClosed):
+        except websockets.exceptions.ConnectionClosed:
+            print("Connection error.")
+            print(sys.exc_info())
+            print("Restarting...")
+            continue
+            
+        except KeyboardInterrupt:
+            print("Keyboard Interrupt. Now exiting.")    
+            break
+        except:
+            print("Connection Terminated?")
+            print(sys.exc_info())
+            break
+        finally:
+            print("Unexpected non-exception error. Now exiting to prevent infinite loop.")
+            print(sys.exc_info())
+            break
+        
 # And so it begins...
 main()

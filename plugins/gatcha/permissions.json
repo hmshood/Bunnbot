@@ -1,5 +1,5 @@
 {
-  "gatcha": 
+  "gatcha":
       {
         "" : "everyone",
         "open": "streamer",
@@ -8,6 +8,12 @@
         "list": "everyone",
         "reset": "streamer",
         "spin": "streamer",
-        "add" : "streamer"
-      }      
+        "add" : "streamer",
+        "leave" : "everyone",
+        "remove" : "streamer",
+        "lookup" : "everyone",
+        "ban" : "everyone",
+        "unban" : "everyone"
+      }
 }
+
