@@ -2,18 +2,20 @@
   "gatcha":
       {
         "" : "everyone",
-        "open": "streamer",
-        "close": "streamer",
-        "phrase":"streamer",
+        "open": "moderator",
+        "close": "moderator",
+        "phrase":"moderator",
+        "sesame":"moderator",
         "list": "everyone",
-        "reset": "streamer",
-        "spin": "streamer",
-        "add" : "streamer",
+        "reset": "moderator",
+        "spin": "moderator",
+        "reroll": "moderator",
+        "add" : "moderator",
         "leave" : "everyone",
-        "remove" : "streamer",
+        "remove" : "moderator",
         "lookup" : "everyone",
         "ban" : "everyone",
-        "unban" : "everyone"
+        "unban" : "streamer"
       }
 }
 

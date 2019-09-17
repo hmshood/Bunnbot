@@ -14,6 +14,7 @@ keyDefault = "???"                # This is the default key phrase used to enter
 keyPhrase = keyDefault            # The ACTUAL key phrase that'll be used to compare to entrants' input
 active = False                    # True = raffle open for key phase entires. False = no more entrants accepted unless force added via coroutine.
 charLimit = 255
+winner = ""
 
 def init():                       # There's nothing to setup, but this is required for the plugin to run and, as such, must be declared.
   pass
@@ -74,10 +75,12 @@ async def on_message(msg):
 
       
 async def on_raffle_run(msg):
+    global winner
+  
     await score(msg.winner)
     await asyncio.sleep(8)
     await B.send_message(":tada: Congrats, @{} you've won the raffle! :tada:".format(msg.winner))
-  
+    winner = msg.winner  
   
   
 async def on_command(msg):
@@ -104,16 +107,34 @@ async def on_command(msg):
                 smallCmd = cmd[1].lower()
                 #print(smallCmd)
               
-                if (smallCmd == "open"):
+                if (smallCmd == "open" or smallCmd == "sesame"):
+                    if (smallCmd == "sesame"):
+                        extraCmd = cmd[2:]
+                        extraCmd = " ".join(extraCmd)
+                        keyPhrase = extraCmd
+                        users = []
+                        
+                        await B.send_message("POOF! Keyword changed and list of entries wiped!")
+                        await asyncio.sleep(2)
+                  
                     if (not active):
-                        active = True
+                        if (smallCmd == "open"):
+                            active = True
                         await B.send_message("Okay, guys! Get ready! The raffle's about to open again!")
 
                     if (keyPhrase == "???"):
                         await asyncio.sleep(1)
                         await B.send_message("Oh! Well. The raffle is open, but remember to set the key phrase using the '{0}{1} phrase' command!".format(C.command_char, cmd[0]))
                     elif (keyPhrase != "???"):
+                        await asyncio.sleep(1)
+                        await B.send_message("On your marks!")
+                        await asyncio.sleep(1)
+                        await B.send_message("Get set!")
                         await asyncio.sleep(3)
+                        await B.send_message(":checkered_flag::checkered_flag:Go!:checkered_flag::checkered_flag:")
+                        
+                        active = True
+                        
                         await output_phrase()
                     else:
                         active = False
@@ -160,6 +181,7 @@ async def on_command(msg):
                       
                 elif (smallCmd == "reset"):
                     buffer = ""
+                    active = False
 
                     if (len(users) > 0):
                         users = []
@@ -183,7 +205,7 @@ async def on_command(msg):
                           buffer = "[Current Raffle Entrants ({})]:".format(len(users))
                         
                           for nerds in users:
-                              buffer += " {} ,".format(nerds)
+                              buffer += " {},".format(nerds)
                           buffer = buffer.strip(",")
                           await B.send_message(buffer)
                           print(users)
@@ -280,8 +302,12 @@ async def on_command(msg):
                   
                   
                   
-                elif (smallCmd == "spin"):
+                elif (smallCmd == "spin" or smallCmd == "reroll"):
+                    global winner
                     #print(users)
+                    if (len(winner) > 0 and smallCmd == "reroll"):
+                        await removeFromRaffle(winner)
+                        await asyncio.sleep(1)
                   
                     if (len(users) > 1):                       
                         await B.send_message("Raffle spinning! Good luck, guys!")
@@ -503,7 +529,7 @@ async def score(name):
           peek = score.readline()
           pip = 1 
 
-          while (len(peek) > 0 and peek[0].isdigit() and peek.startswith(".) ", 1)):
+          while (len(peek) > 0 and peek[0].isdigit() and (peek.find(".)") > -1)):  #peek.startswith(".) ", 1)):
               temp.write(peek)
               pip = str(int(peek[0]) + 1)
               peek = score.readline()

@@ -246,8 +246,8 @@ Starts a raffle which incorporates the passed in list of names.
 async def raffle_init(names):
     msg = chat_pb2.RaffleInit()
     ###print("-----")
-    print(msg.names)
-    print(names)
+    ###print(msg.names)
+    ###print(names)
     ###print("<><><>")
     #msg.names = names
     msg.names.extend(names)

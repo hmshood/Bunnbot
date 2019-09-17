@@ -112,9 +112,8 @@ class BunnClient(object):
         try:
             #print ("Task count: " + str(len(asyncio.Task.all_tasks())))
             # Receiving data from the socket...
-            print("Waiting for data...")
             data = await self.websocket.recv()
-            print("???")
+            
             if (data):
 
                 # We'll grab the first byte from the data... aka our message ID

@@ -112,20 +112,23 @@ _package.json
 #*.json
 
 # Constants 
-src/chat*
-src/con*
-src/Bytes.py
+#src/chat*
+#src/con*
+#src/Bytes.py
 
-# Shell Files
+#Shell Files
 *.sh
 
 #Extra Notes
 to-do*
 timestamp*
+blacklist*
+keepalive*
+scoreboard*
+temp.txt
+http.js*
+requirements.txt
+# Git Please Don't Eat My Hard Drive
+../bin
 logs.txt
-
-# Indev stuff
-__*
-!__init__.py
-*.txt
-!requirements.txt
+___*
