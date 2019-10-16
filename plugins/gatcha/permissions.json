@@ -12,6 +12,7 @@
         "reroll": "moderator",
         "add" : "moderator",
         "leave" : "everyone",
+        "luck" : "everyone",
         "remove" : "moderator",
         "lookup" : "everyone",
         "ban" : "everyone",
