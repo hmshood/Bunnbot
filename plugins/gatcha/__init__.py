@@ -16,7 +16,7 @@ active = False                    # True = raffle open for key phase entires. Fa
 charLimit = 255
 winner = ""
 
-oddsOn = True                    # Determines if raffles will cause the luck compensation to update.
+oddsOn = False                    # Determines if raffles will cause the luck compensation to update.
 oddsInit = 1                      # Initial amount of entries a new user has when first participating in a raffle.
 oddsAdd = 1                       # Amount of entries that the raffle losers gain after a roll.
 oddsMinus = -1                    # Here for whatever reason/situation you need to decriment a stack
@@ -94,7 +94,6 @@ async def on_message(msg):
 async def on_raffle_run(msg):
     global winner
     global users
-    found = False
     buffer = ""
     
   
@@ -108,7 +107,6 @@ async def on_raffle_run(msg):
             for line in odds:                
 
                 if (nerd.strip() == line[(line.find("]") + 2):].strip()):
-                    found = True
                     currStack = int(line[1:(line.find("]"))]) 
 
                     if (nerd.lower() != winner.lower()):                       
@@ -118,16 +116,12 @@ async def on_raffle_run(msg):
                         currStack = oddsReset
 
                     
-                    buffer += " [{0}] {1},".format(str(currStack), nerd.strip())
+                    buffer += " {0}: [{1}] |".format(nerd.strip(), str(currStack))
                     check.write("[" + str(currStack) + "] " + nerd + "\n")
 
                 else:
                     check.write(line)
 
-            if (not found):
-                check.write("[" + str(oddsInit) + "] " + nerd + "\n")
-
-            found = False
 
             odds.close()
             odds = open("stacked_odds.txt", "w")
@@ -141,14 +135,18 @@ async def on_raffle_run(msg):
         
         
     
-    await asyncio.sleep(7)
+    await asyncio.sleep(6)
     await B.send_message(":tada: Congrats, @{} you've won the raffle! :tada:".format(msg.winner))
     
     if (oddsOn):
-        await asyncio.sleep(5)
-        await B.send_message(":four_leaf_clover:The rest of you guys gain *" + str(oddsAdd) + "* extra entry(s) for the next raffle as compensation!:four_leaf_clover: Here are the new standings:")
-        await asyncio.sleep(2)    
-        buffer = buffer.strip(",")
+        await asyncio.sleep(4)
+        await B.send_message(":four_leaf_clover: The rest of you guys gain [" + str(oddsAdd) + "] extra entry(s) for your next raffle as compensation! :four_leaf_clover:")
+        
+        await asyncio.sleep(2)           
+        await B.send_message("Here are your new standings: ")
+        
+        await asyncio.sleep(3)
+        buffer = buffer.strip("|")
         await B.send_message(buffer)
 
             
@@ -282,13 +280,33 @@ async def on_command(msg):
                   
                 elif (smallCmd == "list"):
                       if (len(users) > 0):
-                          buffer = "[Current Raffle Entrants ({})]:".format(len(users))
-                        
-                          for nerds in users:
-                              buffer += " {},".format(nerds.strip())
-                          buffer = buffer.strip(",")
-                          await B.send_message(buffer)
+                          if (oddsOn):
+                              buffer = ""
+                              total = 0
 
+                              for entrant in users:
+                                  stacks = await stackDisplay(entrant)                                   
+                                  if (not stacks):
+                                      stacks = oddsInit
+
+                                  total += int(stacks)                                  
+                                  buffer += " {0}: [{1}] |".format(entrant, stacks)     
+                                  
+
+                              
+                              await B.send_message("[Current Entrants ({0}) | Total Luck ({1})]:".format(len(users), total))
+                              await asyncio.sleep(1)
+                              buffer = buffer.strip("|")
+                              await B.send_message(buffer)
+                              
+                          else:
+                              buffer = "[Current Raffle Entrants ({})]:".format(len(users))
+
+                              for nerds in users:
+                                  buffer += " {},".format(nerds.strip())
+                              buffer = buffer.strip(",")
+                              await B.send_message(buffer)
+                              
                       else:
                           await B.send_message("There are no entrants to list.")
 
@@ -379,16 +397,13 @@ async def on_command(msg):
                   
                   
                   
-                elif (smallCmd == "luck"):                  
-                    odds = open("stacked_odds.txt", "r")
-                    for line in odds: 
-                        if (msg.display_name.lower().strip() == line[(line.find("]") + 2):].lower().strip()):
-                            await B.send_message(":four_leaf_clover:@{0}, you have [{1}] stacks of luck.:four_leaf_clover:".format(msg.display_name,str(line[1:(line.find("]"))])))
-                            odds.close()
-                            return
+                elif (smallCmd == "luck"):  
+                    stacks = await stackDisplay(msg.display_name)
                     
-                    odds.close()
-                    await B.send_message("@{}, you must have participated in a raffle to start gaining luck stacks!".format(msg.display_name))
+                    if (stacks):
+                        await B.send_message(":four_leaf_clover:@{0}, you have [{1}] stacks of luck.:four_leaf_clover:".format(msg.display_name, stacks))
+                    else:
+                        await B.send_message("@{}, you must have participated in a raffle to start gaining luck stacks!".format(msg.display_name))
                     
                   
                   
@@ -404,11 +419,14 @@ async def on_command(msg):
                         await B.send_message("Raffle spinning! Good luck, guys!")                        
                                  
                         if (oddsOn):
-                            mixedUsers = await stackEm(users)
+                            mixedUsers = await stackEm(users.copy())
+                            print("ON :" + str(len(mixedUsers)))
                         else:
                             mixedUsers = users.copy()
+                            print("OFF: " + str(len(mixedUsers)))
                             
-                        i = len(mixedUsers) - 1      
+                        i = len(mixedUsers) - 1    
+                        #print(str(i))
                         
 
                         while (i > 0):
@@ -608,24 +626,52 @@ async def parse_blacklist(name, editFlag):
 async def stackEm(list):
     blocks = open("stacked_odds.txt", "r")
     newList = []
+    found = False    
+    
     
     for name in list:
         #print("Init: " + name)
         for line in blocks:     
-            #print("Name: " + name + " Line: " + line)
+            #print("Name: " + name + " Line: " + line)    
             if (name.lower().strip() == line[(line.find("]") + 2):].lower().strip()):
+                found = True
                 for x in range(int(line[1:(line.find("]"))])):
                     if (0 < int(line[1:(line.find("]"))])):
-                        newList.append(name)
+                        newList.append(name)                                               
                 break
+                
+        if (not found):
+            for y in range(oddsInit):
+                blocks.close()                
+                blocks = open("stacked_odds.txt", "a")
+                blocks.write("[" + str(oddsInit) + "] " + name + "\n")
+                blocks.close()
+                blocks = open("stacked_odds.txt", "r")
+
+                newList.append(name)  
+            
         blocks.seek(0)
     
     blocks.close()
-    return (newList)
-            
-        
+    print("DURING: " + str(len(newList)))
+    return(newList)
+         
     
     
+
+async def stackDisplay(name):
+    odds = open("stacked_odds.txt", "r")
+    for line in odds: 
+        if (name.lower().strip() == line[(line.find("]") + 2):].lower().strip()):           
+            odds.close()
+            return(str(line[1:(line.find("]"))]))
+
+    odds.close()
+    return(False)
+    
+
+    
+             
 async def score(name):  
   peek = ""
   found = False

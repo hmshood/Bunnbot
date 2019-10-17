@@ -124,7 +124,7 @@ to-do*
 timestamp*
 blacklist*
 keepalive*
-scoreboard*
+#scoreboard*
 temp.txt
 http.js*
 _requirements.txt
