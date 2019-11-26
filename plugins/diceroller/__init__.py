@@ -57,7 +57,7 @@ async def on_command(msg):
                 await print_roll(msg.display_name,roll)
             # Here's what we do if they typed !roll <number>
             elif (len(message) > 1):
-                if (message[1] == "toggle" and msg.streamer):
+                if (message[1] == "zzzzzztoggle" and msg.streamer):
                     if not(isActive):
                         isActive = True
                         await B.send_message("Dice roller is active for all users with a global cooldown of {} seconds!".format(cooldown))                        

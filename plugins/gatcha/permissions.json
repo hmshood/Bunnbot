@@ -15,8 +15,9 @@
         "luck" : "everyone",
         "remove" : "moderator",
         "lookup" : "everyone",
-        "ban" : "everyone",
-        "unban" : "streamer"
+        "ban" : "streamer",
+        "unban" : "streamer",
+        "toggle" : "moderator"
       }
 }
 

@@ -81,8 +81,7 @@ async def start():
         client = Client.BunnClient(websocket, _loop,_plugin_manager)
         B._client = client
         
-        ### Define variables for command line interface seperate from all Client instances.
-        ###_master_console = Console.BunnConsole(mode="Reader", intro="[MASTER CONSOLE]", prompt=">>> ")
+        ###Should make a loop here making a new task, but passing each access token needed
         
         task = asyncio.Task(client.main())
         #task.cancel()

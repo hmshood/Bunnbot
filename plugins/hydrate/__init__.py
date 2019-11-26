@@ -70,9 +70,11 @@ async def on_online_state(msg):
         if (ready and started):
             await B.send_message("Remember to save, stretch, and hydrate!")
         elif (not started):
-            print("Reminder not started.")
+            pass
+            #print("Reminder not started.")
         else:
-            print("Reminder not ready. Waiting for next call....")
+            pass
+            #print("Reminder not ready. Waiting for next call....")
             
     except:
         print("Error in reminder control code")

@@ -16,17 +16,20 @@ active = False                    # True = raffle open for key phase entires. Fa
 charLimit = 255
 winner = ""
 
-oddsOn = False                    # Determines if raffles will cause the luck compensation to update.
+oddsOn = True                    # Determines if raffles will cause the luck compensation to update.
 oddsInit = 1                      # Initial amount of entries a new user has when first participating in a raffle.
 oddsAdd = 1                       # Amount of entries that the raffle losers gain after a roll.
 oddsMinus = -1                    # Here for whatever reason/situation you need to decriment a stack
 oddsReset = 0                     # Amount of entries the raffle winner's stack will be reduced to after a roll.
 oddsAuto = 50                     # Number of entries before an entrant automatically wins the raffle. Mercy win, basically.
 
-
+print("2")
+print(oddsOn)
 
 def init():                       
     global users
+    global oddsOn
+    
     f = open("raffle.txt", "r+")
   
     if (len(f.read()) > 0):
@@ -34,8 +37,15 @@ def init():
         for line in f:
             users.append(line.strip())
             
-    f.close()
-  
+    f.close()    
+    
+    g = open("toggles.txt", "r+")    
+    if (len(g.readline()) == 0):
+        oddsOn = False  
+        print("DAB")
+    g.close()
+
+
 
 
 '''
@@ -94,8 +104,7 @@ async def on_message(msg):
 async def on_raffle_run(msg):
     global winner
     global users
-    buffer = ""
-    
+    buffer = ""    
   
     await score(msg.winner)
     winner = msg.winner    
@@ -157,6 +166,10 @@ async def on_command(msg):
     global users
     global active
     global keyPhrase
+    global oddsOn
+    
+    print("1")
+    print(oddsOn)
   
     msg = await sanitize_input(msg)
     cmd = msg.message[1:].split(" ")
@@ -279,6 +292,9 @@ async def on_command(msg):
                   
                   
                 elif (smallCmd == "list"):
+                      print(":(")
+                      print(oddsOn)
+                      print(":)")
                       if (len(users) > 0):
                           if (oddsOn):
                               buffer = ""
@@ -401,13 +417,28 @@ async def on_command(msg):
                     stacks = await stackDisplay(msg.display_name)
                     
                     if (stacks):
-                        await B.send_message(":four_leaf_clover:@{0}, you have [{1}] stacks of luck.:four_leaf_clover:".format(msg.display_name, stacks))
-                    else:
-                        await B.send_message("@{}, you must have participated in a raffle to start gaining luck stacks!".format(msg.display_name))
+                        await B.whisper(msg.display_name, ":four_leaf_clover:@{0}, you have [{1}] stacks of luck.:four_leaf_clover:".format(msg.display_name, stacks))
+                    elif(stacks == False):
+                        await B.whisper(msg.display_name, "@{}, you must have participated in a raffle to start gaining luck stacks!".format(msg.display_name))
+                        
+                        
+                        
+                        
+                elif (smallCmd == "toggle"):     
                     
+                    g = open("toggles.txt", "w+")                        
+                    oddsOn = not oddsOn                    
+                    if (oddsOn):
+                        g.write(str(oddsOn))
+                    g.close()                   
+                   
+                    
+                    await B.send_message("{0} has been set to {1}".format("Luck", oddsOn))                   
                   
                   
                   
+                  
+          
                 elif (smallCmd == "spin" or smallCmd == "reroll"):
                     global winner
                     
@@ -631,6 +662,8 @@ async def stackEm(list):
     
     for name in list:
         #print("Init: " + name)
+        #print(name)
+        found = False
         for line in blocks:     
             #print("Name: " + name + " Line: " + line)    
             if (name.lower().strip() == line[(line.find("]") + 2):].lower().strip()):
@@ -638,16 +671,16 @@ async def stackEm(list):
                 for x in range(int(line[1:(line.find("]"))])):
                     if (0 < int(line[1:(line.find("]"))])):
                         newList.append(name)                                               
-                break
+                #break
                 
         if (not found):
+            print("Not found :(")
+            blocks.close()                
+            blocks = open("stacked_odds.txt", "a")          
+            blocks.write("[" + str(oddsInit) + "] " + name + "\n")
+            blocks.close()
+            blocks = open("stacked_odds.txt", "r")
             for y in range(oddsInit):
-                blocks.close()                
-                blocks = open("stacked_odds.txt", "a")
-                blocks.write("[" + str(oddsInit) + "] " + name + "\n")
-                blocks.close()
-                blocks = open("stacked_odds.txt", "r")
-
                 newList.append(name)  
             
         blocks.seek(0)
@@ -662,6 +695,7 @@ async def stackEm(list):
 async def stackDisplay(name):
     odds = open("stacked_odds.txt", "r")
     for line in odds: 
+        #print(line)
         if (name.lower().strip() == line[(line.find("]") + 2):].lower().strip()):           
             odds.close()
             return(str(line[1:(line.find("]"))]))
@@ -745,4 +779,9 @@ async def score(name):
 "leave" (for participants): ok
 cooldown system:
 persistent tracking: ok
+
+bounty:
+  claim
+  post
+  list - default (!gatcha bounty)
 '''
