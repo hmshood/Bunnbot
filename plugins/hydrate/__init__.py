@@ -17,29 +17,14 @@ def init():
     if (not started):
         f = open("timestamp.txt", "r+")
         hold = f.read()
-        #print("Hold: {0}, Length: {1}".format(hold, len(hold)))
 
         if (len(hold) > 10): 
             f.seek(0)
             lastCall = f.readline().rstrip()
-            #hold = bool(f.readline())
 
-            #if (hold is True):
             started = True
-            #f.seek(0)
-            #f.truncate()                
-            #f.write("{0}\n{1}".format(lastCall))#, str(started)))
 
-        """
-        elif (len(hold) <= 10):            
-            lastCall = datetime.datetime.strftime(lastCall, conversion)
 
-            f.seek(0)
-            f.truncate()  
-            f.write("{0}\n{1}".format(lastCall, str(started)))
-            
-        f.close()
-        """
 
 
 async def on_command(msg):
@@ -85,9 +70,11 @@ async def on_online_state(msg):
         if (ready and started):
             await B.send_message("Remember to save, stretch, and hydrate!")
         elif (not started):
-            print("Reminder not started.")
+            pass
+            #print("Reminder not started.")
         else:
-            print("Reminder not ready. Waiting for next call....")
+            pass
+            #print("Reminder not ready. Waiting for next call....")
             
     except:
         print("Error in reminder control code")

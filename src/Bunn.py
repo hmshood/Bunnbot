@@ -246,8 +246,8 @@ Starts a raffle which incorporates the passed in list of names.
 async def raffle_init(names):
     msg = chat_pb2.RaffleInit()
     ###print("-----")
-    print(msg.names)
-    print(names)
+    ###print(msg.names)
+    ###print(names)
     ###print("<><><>")
     #msg.names = names
     msg.names.extend(names)
@@ -277,7 +277,11 @@ Args:
 Sends a regular message to the chat as the bot.
 '''
 async def send_message(message):
+    #cmsgs_copy = _client.cmsgs.copy()
+    #print(str(cmsgs_copy.keys()[-1]))
+    
+  
+    
     msg = chat_pb2.NewMessage()
     msg.message = message
-    await asyncio.sleep(0.2)
     await _client.send_data(msg, Bytes.b_NewMessage)

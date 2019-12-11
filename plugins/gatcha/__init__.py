@@ -8,15 +8,42 @@ from src import Bunn as B
 from src import Consts as C
 import html.parser as htmlparser
 
-parser = htmlparser.HTMLParser()  # Used to keep non-alphanumeric characters in output reable and not an encoded mess.
+parser = htmlparser.HTMLParser()      # Used to keep non-alphanumeric characters in output reable and not an encoded mess.
 users = []      
-keyDefault = "???"                # This is the default key phrase used to enter the raffle once it's open. DO NOT CHANGE AT PLUGIN RUNTIME
-keyPhrase = keyDefault            # The ACTUAL key phrase that'll be used to compare to entrants' input
-active = False                    # True = raffle open for key phase entires. False = no more entrants accepted unless force added via coroutine.
+keyDefault = "???"                    # This is the default key phrase used to enter the raffle once it's open. DO NOT CHANGE AT PLUGIN RUNTIME
+keyPhrase = keyDefault                # The ACTUAL key phrase that'll be used to compare to entrants' input
+active = False                        # True = raffle open for key phase entires. False = no more entrants accepted unless force added via coroutine.
 charLimit = 255
+winner = ""
 
-def init():                       # There's nothing to setup, but this is required for the plugin to run and, as such, must be declared.
-  pass
+oddsOn = True                         # Determines if raffles will cause the luck compensation to update.
+oddsInit = 1                          # Initial amount of entries a new user has when first participating in a raffle.
+oddsAdd = 1                           # Amount of entries that the raffle losers gain after a roll.
+oddsMinus = -1                        # Here for whatever reason/situation you need to decriment a stack
+oddsReset = 0                         # Amount of entries the raffle winner's stack will be reduced to after a roll.
+oddsAuto = 50                         # Number of entries before an entrant automatically wins the raffle. Mercy win, basically.
+
+
+
+def init():                       
+    global users
+    global oddsOn
+    
+    f = open("raffle.txt", "r+")      # Check if there are any previous existing entries into the raffle. This is to handle the bot shutting down mid raffle.
+  
+    if (len(f.read()) > 0):           # If there is anything on file, put each line from that into the current raffle queue.
+        f.seek(0)
+        for line in f:
+            users.append(line.strip())
+            
+    f.close()    
+    
+    g = open("toggles.txt", "r+")     # Clunky way to add raffle state persisteance in case of bot shutdown. If there's anything written to file, the Luck mechanic is enabled.
+    if (len(g.readline()) == 0):
+        oddsOn = False  
+    g.close()
+
+
 
 
 '''
@@ -41,7 +68,7 @@ Commands:
                           With #, you can insert dummy entrants into the raffle for any reason, and they can be named anything
                           so long as it is one continuous word.
                           
-        remove <name>:
+        remove <name>:    Same format and process as in the above "add" command, but removes someone from the current raffle entry list.
                          
         reset:            Sets the key phrase back to its default value and wipes the list of raffle entrants. 
                           Does NOT automatically close the raffle, but a lack of a key phrase will effectively
@@ -64,19 +91,74 @@ async def on_message(msg):
   global keyPhrase
   msg = await sanitize_input(msg)
   
-  #print(msg.message)
-
-    
+  # Check if message contains keyword anyhwere.  
   if (active and keyPhrase != "???" and msg.message.lower().find(keyPhrase.lower()) != -1 and msg.message[0] != C.command_char and not msg.streamer):
       await addToRaffle(msg, False)
   elif (not active and keyPhrase != "???" and msg.message.lower().find(keyPhrase.lower()) != -1):
       await B.send_message("No open raffle to join yet!")      
 
       
+      
+      
 async def on_raffle_run(msg):
+    global winner
+    global users
+    buffer = ""    
+  
     await score(msg.winner)
-    await asyncio.sleep(8)
+    winner = msg.winner    
+    
+    # Look up the winner's username from the entry list, updating everyone's score in a huma readable format.    
+    if (oddsOn):    
+        for nerd in users:     
+            odds = open("stacked_odds.txt", "r")
+            check = open("temp_odds.txt", "w")
+            for line in odds:                
+
+                if (nerd.strip() == line[(line.find("]") + 2):].strip()):
+                    currStack = int(line[1:(line.find("]"))]) 
+
+                    if (nerd.lower() != winner.lower()):                       
+                        currStack += oddsAdd                           
+
+                    elif (nerd.lower() == winner.lower()):
+                        currStack = oddsReset
+
+                    
+                    buffer += " {0}: [{1}] |".format(nerd.strip(), str(currStack))
+                    check.write("[" + str(currStack) + "] " + nerd + "\n")
+
+                else:
+                    check.write(line)
+
+
+            odds.close()
+            odds = open("stacked_odds.txt", "w")
+
+            check.close()
+            check = open("temp_odds.txt", "r")
+
+            odds.write(check.read())        
+            odds.close()
+            check.close()   
+        
+        
+    
+    await asyncio.sleep(6)   # Wait for animation to play client side, as the winner is chosen instantly, but the roll is in real time and is just for show.
     await B.send_message(":tada: Congrats, @{} you've won the raffle! :tada:".format(msg.winner))
+    
+    if (oddsOn):
+        await asyncio.sleep(4)
+        await B.send_message(":four_leaf_clover: The rest of you guys gain [" + str(oddsAdd) + "] extra entry(s) for your next raffle as compensation! :four_leaf_clover:")
+        
+        await asyncio.sleep(2)           
+        await B.send_message("Here are your new standings: ")
+        
+        await asyncio.sleep(3)
+        buffer = buffer.strip("|")
+        await B.send_message(buffer)
+
+            
   
   
   
@@ -84,7 +166,14 @@ async def on_command(msg):
     global users
     global active
     global keyPhrase
+    global oddsOn
+    
+    #print("1")
+    #print(oddsOn)
   
+    # Retrieve the message'scontents, scrub it for potencial plain-text injections, 
+    #and split it into an array of whole words, ignoring the command character.
+    
     msg = await sanitize_input(msg)
     cmd = msg.message[1:].split(" ")
       
@@ -102,18 +191,39 @@ async def on_command(msg):
                     
             elif (len(cmd) > 1):
                 smallCmd = cmd[1].lower()
-                #print(smallCmd)
               
-                if (smallCmd == "open"):
+                if (smallCmd == "open" or smallCmd == "sesame"):
+                    if (smallCmd == "sesame"):
+                        extraCmd = cmd[2:]
+                        extraCmd = " ".join(extraCmd)
+                        keyPhrase = extraCmd
+                        users = []
+                        
+                        f = open("raffle.txt", "w+")
+                        f.write("")
+                        f.close()
+                        
+                        await B.send_message("POOF! Keyword changed and list of entries wiped!")
+                        await asyncio.sleep(2)
+                  
                     if (not active):
-                        active = True
+                        if (smallCmd == "open"):
+                            active = True
                         await B.send_message("Okay, guys! Get ready! The raffle's about to open again!")
 
                     if (keyPhrase == "???"):
                         await asyncio.sleep(1)
                         await B.send_message("Oh! Well. The raffle is open, but remember to set the key phrase using the '{0}{1} phrase' command!".format(C.command_char, cmd[0]))
                     elif (keyPhrase != "???"):
+                        await asyncio.sleep(1)
+                        await B.send_message("On your marks!")
+                        await asyncio.sleep(1)
+                        await B.send_message("Get set!")
                         await asyncio.sleep(3)
+                        await B.send_message(":checkered_flag::checkered_flag:Go!:checkered_flag::checkered_flag:")
+                        
+                        active = True
+                        
                         await output_phrase()
                     else:
                         active = False
@@ -160,10 +270,16 @@ async def on_command(msg):
                       
                 elif (smallCmd == "reset"):
                     buffer = ""
+                    active = False
 
                     if (len(users) > 0):
                         users = []
-                        buffer = "The list of raffle entrants has been reset "
+                        
+                        f = open("raffle.txt", "w+")
+                        f.write("")
+                        f.close()
+                        
+                        buffer = "The list of raffle entrants has been reset"
                     else:
                         buffer = "The current list of raffle entrants is already empty "                    
 
@@ -179,15 +295,37 @@ async def on_command(msg):
                   
                   
                 elif (smallCmd == "list"):
+                      print(":(")
+                      print(oddsOn)
+                      print(":)")
                       if (len(users) > 0):
-                          buffer = "[Current Raffle Entrants ({})]:".format(len(users))
-                        
-                          for nerds in users:
-                              buffer += " {} ,".format(nerds)
-                          buffer = buffer.strip(",")
-                          await B.send_message(buffer)
-                          print(users)
+                          if (oddsOn):
+                              buffer = ""
+                              total = 0
 
+                              for entrant in users:
+                                  stacks = await stackDisplay(entrant)                                   
+                                  if (not stacks):
+                                      stacks = oddsInit
+
+                                  total += int(stacks)                                  
+                                  buffer += " {0}: [{1}] |".format(entrant, stacks)     
+                                  
+
+                              
+                              await B.send_message("[Current Entrants ({0}) | Total Luck ({1})]:".format(len(users), total))
+                              await asyncio.sleep(1)
+                              buffer = buffer.strip("|")
+                              await B.send_message(buffer)
+                              
+                          else:
+                              buffer = "[Current Raffle Entrants ({})]:".format(len(users))
+
+                              for nerds in users:
+                                  buffer += " {},".format(nerds.strip())
+                              buffer = buffer.strip(",")
+                              await B.send_message(buffer)
+                              
                       else:
                           await B.send_message("There are no entrants to list.")
 
@@ -197,12 +335,10 @@ async def on_command(msg):
                           
                 elif (smallCmd == "add" or smallCmd == "ban" or smallCmd == "unban" or smallCmd == "lookup"):
                     if (len(cmd) == 2 and smallCmd == "lookup"):
-                        buffer = "[BLACKLISTED Users]: "
-                        print("srug")
+                        buffer = "[BLACKLISTED Users]: "                      
                         
                         with open("blacklist.txt", "r") as black:
                             length = len(black.read())   
-                            #print(length)
                             
                             black.seek(0)
                         
@@ -227,7 +363,7 @@ async def on_command(msg):
                     elif (len(cmd) == 3 and (cmd[2].startswith("@") or cmd[2].startswith("#"))):
                         result = None
                         name = cmd[2][1:].title()
-                        #print("eyyy")
+                        
                       
                         if (smallCmd == "add"):
                             await addToRaffle(cmd, True, msg)     # Format: (Parsed command split into pieces, Is forced, Raw message object)               
@@ -236,7 +372,7 @@ async def on_command(msg):
                         #Where # is: 0 = Read list, 1 = Add to blacklist, 2 = remove from blacklist, 3 compare against list of entrants
                         elif (smallCmd == "lookup"):
                             result = await parse_blacklist(name, 0) 
-                            #print("lookup")
+                            
                             if (result):
                                 await B.send_message("User \"{}\" is currently BLACKLISTED.".format(name))
                             else:
@@ -280,17 +416,52 @@ async def on_command(msg):
                   
                   
                   
-                elif (smallCmd == "spin"):
-                    #print(users)
+                elif (smallCmd == "luck"):  
+                    stacks = await stackDisplay(msg.display_name)
+                    
+                    if (stacks):
+                        await B.whisper(msg.display_name, ":four_leaf_clover:@{0}, you have [{1}] stacks of luck.:four_leaf_clover:".format(msg.display_name, stacks))
+                    elif(stacks == False):
+                        await B.whisper(msg.display_name, "@{}, you must have participated in a raffle to start gaining luck stacks!".format(msg.display_name))
+                        
+                        
+                        
+                        
+                elif (smallCmd == "toggle"):     
+                    
+                    g = open("toggles.txt", "w+")                        
+                    oddsOn = not oddsOn                    
+                    if (oddsOn):
+                        g.write(str(oddsOn))
+                    g.close()                   
+                   
+                    
+                    await B.send_message("{0} has been set to {1}".format("Luck", oddsOn))                   
+                  
+                  
+                  
+                  
+          
+                elif (smallCmd == "spin" or smallCmd == "reroll"):
+                    global winner
+                    
+                    if (len(winner) > 0 and smallCmd == "reroll"):
+                        await removeFromRaffle(winner)
+                        await asyncio.sleep(1)
                   
                     if (len(users) > 1):                       
-                        await B.send_message("Raffle spinning! Good luck, guys!")
+                        await B.send_message("Raffle spinning! Good luck, guys!")                        
+                                 
+                        if (oddsOn):
+                            mixedUsers = await stackEm(users.copy())
+                            print("ON :" + str(len(mixedUsers)))
+                        else:
+                            mixedUsers = users.copy()
+                            print("OFF: " + str(len(mixedUsers)))
+                            
+                        i = len(mixedUsers) - 1    
+                        #print(str(i))
                         
-                        mixedUsers = users
-                        i = len(mixedUsers) - 1
-                        
-                        print(users)
-                        print(mixedUsers)
 
                         while (i > 0):
                             toSwap = random.randint(0, i)
@@ -307,15 +478,14 @@ async def on_command(msg):
                 
                 else:
                     await B.send_message("Sorry, '{0}' is an invalid {1} command".format(cmd[1], cmd[0].lower()))
-                    
-                
-                                             
+                                                        
                                              
         except:
             print("Error in gatcha.")
             print(sys.exc_info())
             pass
 
+          
           
 
 async def addToRaffle(natural, forced = False, forceInfo = ""):
@@ -344,8 +514,6 @@ async def addToRaffle(natural, forced = False, forceInfo = ""):
   
     isBanned = await parse_blacklist(username, 3)
     
-    print(isBanned)
-    
     if (isBanned):
         buffer = "@{}, you are currently blacklisted. You will not be allowed to".format(username.title())
         
@@ -358,7 +526,6 @@ async def addToRaffle(natural, forced = False, forceInfo = ""):
               
     for folks in users:
         if (folks == username):
-            #print(folks)
             await B.send_message("Looks like you're already in the raffle, @{}!".format(username))
             return
             
@@ -371,6 +538,13 @@ async def addToRaffle(natural, forced = False, forceInfo = ""):
        
     if (numId != 0):
         buffer = "@" + buffer
+        
+    f = open("raffle.txt", "w+")
+    
+    for line in users:
+        f.write(line + "\n")
+        
+    f.close()
     
     await B.send_message(buffer)
     
@@ -388,9 +562,15 @@ async def removeFromRaffle(name, isBanned = False):
     for nerds in users:
         if (name.lower() == nerds.lower()):
             users.remove(nerds)
+            
+            f = open("raffle.txt", "w+")    
+            for line in users:
+                f.write(line + "\n")
+                
             await B.send_message("{} has successfully been removed from the raffle.".format(nerds))
             return
     
+        
     if (not isBanned):
         await B.send_message("Could not find the name \"{}\" among the entrants.".format(name))
     
@@ -439,7 +619,7 @@ async def parse_blacklist(name, editFlag):
                 elif (editFlag == 2): #"remove" name by ignoring on copy
                     continue    
                 elif (editFlag == 3):
-                    print("ENEMT SPOTTED")
+                    print("ENEMY SPOTTED")
                     return True
                 else:
                     print("Unexpected editFlag code. Aborting process.")
@@ -477,6 +657,58 @@ async def parse_blacklist(name, editFlag):
     
     
     
+async def stackEm(list):
+    blocks = open("stacked_odds.txt", "r")
+    newList = []
+    found = False    
+    
+    
+    for name in list:
+        #print("Init: " + name)
+        #print(name)
+        found = False
+        for line in blocks:     
+            #print("Name: " + name + " Line: " + line)    
+            if (name.lower().strip() == line[(line.find("]") + 2):].lower().strip()):  # Seperate the username from the "[#]" score by 
+                found = True                                                           # finding the index closing bracket and moving
+                for x in range(int(line[1:(line.find("]"))])):                         # the pointer two places over; one to skip the "]"
+                    if (0 < int(line[1:(line.find("]"))])):                            # and the second to skip the space, leaving the pointer
+                        newList.append(name)                                           # right next to the start of the username.
+                #break
+                
+        if (not found):                           # If the user is not currently on the luck tracking list, add them to it with the default starting value.
+            #print("Not found :(")
+            blocks.close()                
+            blocks = open("stacked_odds.txt", "a")          
+            blocks.write("[" + str(oddsInit) + "] " + name + "\n")
+            blocks.close()
+            blocks = open("stacked_odds.txt", "r")
+            for y in range(oddsInit):
+                newList.append(name)  
+            
+        blocks.seek(0)
+    
+    blocks.close()
+    print("DURING: " + str(len(newList)))
+    return(newList)
+         
+    
+    
+
+async def stackDisplay(name):
+    odds = open("stacked_odds.txt", "r")
+    for line in odds: 
+        #print(line)
+        if (name.lower().strip() == line[(line.find("]") + 2):].lower().strip()):           
+            odds.close()
+            return(str(line[1:(line.find("]"))]))
+
+    odds.close()
+    return(False)
+    
+
+    
+             
 async def score(name):  
   peek = ""
   found = False
@@ -503,9 +735,15 @@ async def score(name):
           peek = score.readline()
           pip = 1 
 
-          while (len(peek) > 0 and peek[0].isdigit() and peek.startswith(".) ", 1)):
+          while (len(peek) > 0 and peek[0].isdigit() and (peek.find(".)") > -1)):  #peek.startswith(".) ", 1)):
+              nextdig = -1
+              
+              if(peek[1].isdigit()):
+                  pip = int(peek[0]) * 10 + int(peek[1]) + 1
+              else:
+                  pip = int(peek[0]) + 1
+              
               temp.write(peek)
-              pip = str(int(peek[0]) + 1)
               peek = score.readline()
 
           temp.write(str(pip) + ".) " + date + "\n")
@@ -544,4 +782,9 @@ async def score(name):
 "leave" (for participants): ok
 cooldown system:
 persistent tracking: ok
+
+bounty:
+  claim
+  post
+  list - default (!gatcha bounty)
 '''
