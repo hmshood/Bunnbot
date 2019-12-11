@@ -112,9 +112,9 @@ _package.json
 #*.json
 
 # Constants 
-src/chat*
-src/con*
-src/Bytes.py
+#src/chat*
+#src/con*
+#src/Bytes.py
 
 #Shell Files
 *.sh
@@ -125,12 +125,14 @@ timestamp*
 blacklist*
 keepalive*
 scoreboard*
-*txt
+toggles*
+stacked*
+#*txt
 http.js*
-requirements.txt
+#requirements.txt
 
 # Git Please Don't Eat My Hard Drive
-../bin
+#../bin
 logs.txt
 raffle.txt
 timestamp.txt

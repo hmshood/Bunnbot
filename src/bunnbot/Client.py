@@ -46,6 +46,7 @@ class BunnClient(object):
 
         self.plugin_manager = pm
         self.start_listening_time = 0
+        self.last_sent_message = ""
 
     '''
     BunnClient.main
@@ -256,9 +257,9 @@ class BunnClient(object):
 
                     await self.plugin_manager.on_event(Bytes.b_Whisper,msg)
 
-                    if (msg.incomming == True):
-                        timestamp = datetime.datetime.fromtimestamp(msg.time_stamp).strftime('%Y-%m-%d %H:%M:%S')
-                        await self.print_override("({0} {1}) [PSSST!] {2}: {3}".format(timestamp, "Local Time", msg.display_name, msg.message))
+                    #if (msg.incomming == True or msg.incomming == False): indent the botom two lines
+                    timestamp = datetime.datetime.fromtimestamp(msg.time_stamp).strftime('%Y-%m-%d %H:%M:%S')
+                    await self.print_override("({0} {1}) [PSSST!] {2}: {3}".format(timestamp, "Local Time", msg.display_name, msg.message))
                 # ID: 30; Name Confirmation
                 # Kind of pointless, but we'll relay a message just in case we need it.
                 if (message_type_id == Bytes.b_NameConfirmation[0]):
@@ -411,12 +412,17 @@ class BunnClient(object):
     async def send_data(self, message, byte):
         try:
             data = message.SerializeToString()
-            data = byte+data
+            data = byte+data            
             await self.websocket.send(data)
+            self.last_sent_message = message
         except:
             print("Error sending data.")
             print(sys.exc_info()[0])
 
+            
+            
+            
+            
     async def print_override(self, text):
         if (not self.console):
             print(text)

@@ -8,41 +8,39 @@ from src import Bunn as B
 from src import Consts as C
 import html.parser as htmlparser
 
-parser = htmlparser.HTMLParser()  # Used to keep non-alphanumeric characters in output reable and not an encoded mess.
+parser = htmlparser.HTMLParser()      # Used to keep non-alphanumeric characters in output reable and not an encoded mess.
 users = []      
-keyDefault = "???"                # This is the default key phrase used to enter the raffle once it's open. DO NOT CHANGE AT PLUGIN RUNTIME
-keyPhrase = keyDefault            # The ACTUAL key phrase that'll be used to compare to entrants' input
-active = False                    # True = raffle open for key phase entires. False = no more entrants accepted unless force added via coroutine.
+keyDefault = "???"                    # This is the default key phrase used to enter the raffle once it's open. DO NOT CHANGE AT PLUGIN RUNTIME
+keyPhrase = keyDefault                # The ACTUAL key phrase that'll be used to compare to entrants' input
+active = False                        # True = raffle open for key phase entires. False = no more entrants accepted unless force added via coroutine.
 charLimit = 255
 winner = ""
 
-oddsOn = True                    # Determines if raffles will cause the luck compensation to update.
-oddsInit = 1                      # Initial amount of entries a new user has when first participating in a raffle.
-oddsAdd = 1                       # Amount of entries that the raffle losers gain after a roll.
-oddsMinus = -1                    # Here for whatever reason/situation you need to decriment a stack
-oddsReset = 0                     # Amount of entries the raffle winner's stack will be reduced to after a roll.
-oddsAuto = 50                     # Number of entries before an entrant automatically wins the raffle. Mercy win, basically.
+oddsOn = True                         # Determines if raffles will cause the luck compensation to update.
+oddsInit = 1                          # Initial amount of entries a new user has when first participating in a raffle.
+oddsAdd = 1                           # Amount of entries that the raffle losers gain after a roll.
+oddsMinus = -1                        # Here for whatever reason/situation you need to decriment a stack
+oddsReset = 0                         # Amount of entries the raffle winner's stack will be reduced to after a roll.
+oddsAuto = 50                         # Number of entries before an entrant automatically wins the raffle. Mercy win, basically.
 
-print("2")
-print(oddsOn)
+
 
 def init():                       
     global users
     global oddsOn
     
-    f = open("raffle.txt", "r+")
+    f = open("raffle.txt", "r+")      # Check if there are any previous existing entries into the raffle. This is to handle the bot shutting down mid raffle.
   
-    if (len(f.read()) > 0):
+    if (len(f.read()) > 0):           # If there is anything on file, put each line from that into the current raffle queue.
         f.seek(0)
         for line in f:
             users.append(line.strip())
             
     f.close()    
     
-    g = open("toggles.txt", "r+")    
+    g = open("toggles.txt", "r+")     # Clunky way to add raffle state persisteance in case of bot shutdown. If there's anything written to file, the Luck mechanic is enabled.
     if (len(g.readline()) == 0):
         oddsOn = False  
-        print("DAB")
     g.close()
 
 
@@ -70,7 +68,7 @@ Commands:
                           With #, you can insert dummy entrants into the raffle for any reason, and they can be named anything
                           so long as it is one continuous word.
                           
-        remove <name>:
+        remove <name>:    Same format and process as in the above "add" command, but removes someone from the current raffle entry list.
                          
         reset:            Sets the key phrase back to its default value and wipes the list of raffle entrants. 
                           Does NOT automatically close the raffle, but a lack of a key phrase will effectively
@@ -93,6 +91,7 @@ async def on_message(msg):
   global keyPhrase
   msg = await sanitize_input(msg)
   
+  # Check if message contains keyword anyhwere.  
   if (active and keyPhrase != "???" and msg.message.lower().find(keyPhrase.lower()) != -1 and msg.message[0] != C.command_char and not msg.streamer):
       await addToRaffle(msg, False)
   elif (not active and keyPhrase != "???" and msg.message.lower().find(keyPhrase.lower()) != -1):
@@ -109,6 +108,7 @@ async def on_raffle_run(msg):
     await score(msg.winner)
     winner = msg.winner    
     
+    # Look up the winner's username from the entry list, updating everyone's score in a huma readable format.    
     if (oddsOn):    
         for nerd in users:     
             odds = open("stacked_odds.txt", "r")
@@ -144,7 +144,7 @@ async def on_raffle_run(msg):
         
         
     
-    await asyncio.sleep(6)
+    await asyncio.sleep(6)   # Wait for animation to play client side, as the winner is chosen instantly, but the roll is in real time and is just for show.
     await B.send_message(":tada: Congrats, @{} you've won the raffle! :tada:".format(msg.winner))
     
     if (oddsOn):
@@ -168,9 +168,12 @@ async def on_command(msg):
     global keyPhrase
     global oddsOn
     
-    print("1")
-    print(oddsOn)
+    #print("1")
+    #print(oddsOn)
   
+    # Retrieve the message'scontents, scrub it for potencial plain-text injections, 
+    #and split it into an array of whole words, ignoring the command character.
+    
     msg = await sanitize_input(msg)
     cmd = msg.message[1:].split(" ")
       
@@ -666,15 +669,15 @@ async def stackEm(list):
         found = False
         for line in blocks:     
             #print("Name: " + name + " Line: " + line)    
-            if (name.lower().strip() == line[(line.find("]") + 2):].lower().strip()):
-                found = True
-                for x in range(int(line[1:(line.find("]"))])):
-                    if (0 < int(line[1:(line.find("]"))])):
-                        newList.append(name)                                               
+            if (name.lower().strip() == line[(line.find("]") + 2):].lower().strip()):  # Seperate the username from the "[#]" score by 
+                found = True                                                           # finding the index closing bracket and moving
+                for x in range(int(line[1:(line.find("]"))])):                         # the pointer two places over; one to skip the "]"
+                    if (0 < int(line[1:(line.find("]"))])):                            # and the second to skip the space, leaving the pointer
+                        newList.append(name)                                           # right next to the start of the username.
                 #break
                 
-        if (not found):
-            print("Not found :(")
+        if (not found):                           # If the user is not currently on the luck tracking list, add them to it with the default starting value.
+            #print("Not found :(")
             blocks.close()                
             blocks = open("stacked_odds.txt", "a")          
             blocks.write("[" + str(oddsInit) + "] " + name + "\n")
