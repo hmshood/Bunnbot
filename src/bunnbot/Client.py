@@ -46,7 +46,9 @@ class BunnClient(object):
 
         self.plugin_manager = pm
         self.start_listening_time = 0
-        self.last_sent_message = ""
+        self.output_queue = []
+        self.last_output_time = time.time()
+        self.output_delay = 1       # Measured in seconds
 
     '''
     BunnClient.main
@@ -68,8 +70,10 @@ class BunnClient(object):
             #print(data[0])
             #print("Loop!")
             try:
+                #print("dab")
                 await self.listen()
                 await asyncio.sleep(0.1)
+                #print("yeet")
                 
             except websockets.exceptions.ConnectionClosed:
                 print("CONNECTION LOST. RECONNECTING...")
@@ -78,7 +82,8 @@ class BunnClient(object):
                 
                 if (self.websocket is None):                  
                     raise
-            
+                    
+                        
               
             #print("GO!")
 
@@ -113,7 +118,8 @@ class BunnClient(object):
         try:
             #print ("Task count: " + str(len(asyncio.Task.all_tasks())))
             # Receiving data from the socket...
-            data = await self.websocket.recv()
+            data = await self.websocket.recv()           
+            
             
             if (data):
 
@@ -414,7 +420,7 @@ class BunnClient(object):
             data = message.SerializeToString()
             data = byte+data            
             await self.websocket.send(data)
-            self.last_sent_message = message
+            #self.last_sent_message = message
         except:
             print("Error sending data.")
             print(sys.exc_info()[0])
@@ -426,6 +432,7 @@ class BunnClient(object):
     async def print_override(self, text):
         if (not self.console):
             print(text)
+            
             
     async def reconnect(self):
         for i in range(10):
@@ -445,3 +452,4 @@ class BunnClient(object):
                 
         self.websocket = await websockets.connect(C.socket_url.format(token))
         self.start_listening_time = time.time()
+        

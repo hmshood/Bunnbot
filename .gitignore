@@ -120,22 +120,22 @@ _package.json
 *.sh
 
 #Extra Notes
-to-do*
-timestamp*
-blacklist*
+#to-do*
+#timestamp*
+#blacklist*
 keepalive*
-scoreboard*
-toggles*
-stacked*
-#*txt
+#scoreboard*
+#toggles*
+#stacked*
+*txt
 http.js*
 #requirements.txt
 
 # Git Please Don't Eat My Hard Drive
-#../bin
-logs.txt
-raffle.txt
-timestamp.txt
+../bin
+#logs.txt
+#raffle.txt
+#timestamp.txt
 temp*
 ___*
 

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Python 3.6
+# Python 3.7.5
 # (c) Alexander J. (KingCrazy) 2018
 # main
 
@@ -51,6 +51,7 @@ async def start():
     req = requests.get(C.api_url + C.api_v + 'user/jwtkey', headers={'Authorization': 'Bearer {}'.format(C.access_token)}, params={'channel_id':C.channel_id, 'bot':'true'})
     code = req.status_code
     token = req.text
+    #print(token)
 
 
     # Handle any status code errors we may have gotten from the GET request
@@ -76,14 +77,20 @@ async def start():
     # when we create it.
     # We also pass in a reference to our _loop, which is currently unnecessary (I think), but
     # might be necessary later on down the line.
+    #print(C.socket_url.format(token))
+    #print("Zero")
     async with websockets.connect(C.socket_url.format(token)) as websocket:
+        #print("One")
         # Creating our Client object.
         client = Client.BunnClient(websocket, _loop,_plugin_manager)
+        #print("Two")
         B._client = client
+        #print("Three")
         
         ###Should make a loop here making a new task, but passing each access token needed
         
         task = asyncio.Task(client.main())
+        #print("Four")
         #task.cancel()
         
         with suppress (asyncio.CancelledError):
