@@ -151,7 +151,7 @@ async def on_raffle_run(msg):
         await asyncio.sleep(4)
         await B.send_message(":four_leaf_clover: The rest of you guys gain [" + str(oddsAdd) + "] extra entry(s) for your next raffle as compensation! :four_leaf_clover:")
         
-        await asyncio.sleep(2)           
+        #await asyncio.sleep(2)           
         await B.send_message("Here are your new standings: ")
         
         await asyncio.sleep(3)
@@ -204,7 +204,8 @@ async def on_command(msg):
                         f.close()
                         
                         await B.send_message("POOF! Keyword changed and list of entries wiped!")
-                        await asyncio.sleep(2)
+                        print("PING")
+                        #await asyncio.sleep(2)
                   
                     if (not active):
                         if (smallCmd == "open"):
@@ -212,12 +213,12 @@ async def on_command(msg):
                         await B.send_message("Okay, guys! Get ready! The raffle's about to open again!")
 
                     if (keyPhrase == "???"):
-                        await asyncio.sleep(1)
+                        #await asyncio.sleep(1)
                         await B.send_message("Oh! Well. The raffle is open, but remember to set the key phrase using the '{0}{1} phrase' command!".format(C.command_char, cmd[0]))
                     elif (keyPhrase != "???"):
-                        await asyncio.sleep(1)
+                        #await asyncio.sleep(1)
                         await B.send_message("On your marks!")
-                        await asyncio.sleep(1)
+                        #await asyncio.sleep(1)
                         await B.send_message("Get set!")
                         await asyncio.sleep(3)
                         await B.send_message(":checkered_flag::checkered_flag:Go!:checkered_flag::checkered_flag:")
@@ -314,7 +315,7 @@ async def on_command(msg):
 
                               
                               await B.send_message("[Current Entrants ({0}) | Total Luck ({1})]:".format(len(users), total))
-                              await asyncio.sleep(1)
+                              #await asyncio.sleep(1)
                               buffer = buffer.strip("|")
                               await B.send_message(buffer)
                               
@@ -447,7 +448,7 @@ async def on_command(msg):
                     
                     if (len(winner) > 0 and smallCmd == "reroll"):
                         await removeFromRaffle(winner)
-                        await asyncio.sleep(1)
+                        #await asyncio.sleep(1)
                   
                     if (len(users) > 1):                       
                         await B.send_message("Raffle spinning! Good luck, guys!")                        
@@ -588,7 +589,7 @@ async def sanitize_input(msg):
     
     
 async def output_phrase():
-    await asyncio.sleep(1)
+    #await asyncio.sleep(1)
     await B.send_message("The key phrase is: [ {} ]".format(keyPhrase))
     
     

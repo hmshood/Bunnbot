@@ -6,6 +6,7 @@ from src import Bytes
 from src import Consts as C
 from src.bunnbot import Client
 import asyncio
+import time
 
 _client = None
 
@@ -276,12 +277,25 @@ Args:
 
 Sends a regular message to the chat as the bot.
 '''
-async def send_message(message):
-    #cmsgs_copy = _client.cmsgs.copy()
-    #print(str(cmsgs_copy.keys()[-1]))
+async def send_message(message): 
+    _client.output_queue.append(message)
     
-  
+    if (_client.is_timer_set == True):
+        return
+    else:
+        _client.is_timer_set = True
+        
     
-    msg = chat_pb2.NewMessage()
-    msg.message = message
-    await _client.send_data(msg, Bytes.b_NewMessage)
+    while (len(_client.output_queue) > 0):
+      
+        if (time.time() - _client.last_output_time >= _client.output_delay):          
+            msg = chat_pb2.NewMessage()
+            msg.message = _client.output_queue.pop(0)
+            await _client.send_data(msg, Bytes.b_NewMessage)
+            
+            _client.last_output_time = time.time()
+            
+        else:
+            await asyncio.sleep(_client.output_delay - (time.time() - _client.last_output_time))
+    
+    _client.is_timer_set = False      
