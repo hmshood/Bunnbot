@@ -6,7 +6,9 @@ class PermissionAuthority():
         # Permissions formatting:
         #   command : permission level
         self.permissions = {}
-
+        isPluginKey = False # This is global scope'd to be able to be modified only once by any given function.
+    
+    
     def load_permissions(self, path, override = False):
         try:
             with open(path,'r') as perm_file:
@@ -63,31 +65,24 @@ class PermissionAuthority():
         else:
             return 7
 
-    async def retrieve_permission_level(self, perms, args, is_list=False):
+    async def retrieve_permission_level(self, perms, args, is_list=False):       
         # perms is a list of things.
         # Perms would be: self.permissions["filter"] which = ["add","remove","help"]
-
         # args is the list of arguments passed in.
-        # e.g. [filter, add, word]
-        #if (is_list == False):
-        #    key = list(perms.keys())[0]
-        #else:
-        #    key = 0
-        #print(args)
-        #print(perms)
-        key = args[0]
+        # e.g. [filter, add, word]      
+                
+        global isPluginKey # Invoked here and not locally due to this function being recursively called, resetting any declarations made further in.
+        
+        key = args[0]        
 
-        #try:
-            #print(args[0])
-            #print(perms)
-            #print(perms[key])
-            #print(key)
-        #except:
-        #    pass
-
-        try:
+        try:        
+          
             if (isinstance(perms[key],list)):
-                return await self.parse_permission_level(perms[key][0])
+                # If this condition passes even once, we know we're working with a key for a plugin and not a sub-command.                
+                return await self.parse_permission_level(perms[key][0])   
+              
+            isPluginKey = True
+              
             # If we've hit a string or an int, we're done.
             if (isinstance(perms[key], str) or isinstance(perms[key], int)):
                 return await self.parse_permission_level(perms[key])
@@ -109,13 +104,21 @@ class PermissionAuthority():
                         # So the next time around, we'll be checking [add[], [remove[], help[]]
                         # to see if it includes anything at "add"
                         return await self.retrieve_permission_level(perms[key],args[1:])
-                    else:
-                        # By default only streamers/admins will have access to this command.
-                        return 2
+                    else:       
+                        return 2 # If something goes spectacularly wrongd, only streamers/admins will have access to this command by default.
+                      
         except KeyError:
-            return 2
+            # There is no level above 7. This is to ensure the check fails, as the key does not exist and, therefore, is not a command.
+            # This is assuming that the convention of not loading plugins with missing permission files is being followed.
+            if (isPluginKey):
+                return 20 
+            else:
+                return 10
 
     async def check_permissions(self, cmd, userlvl):
+        global isPluginKey
+        
+        isPluginKey = False
 
         # We'll cut off the ! from the command we're given.
         cmd = cmd[1:]      
@@ -123,15 +126,22 @@ class PermissionAuthority():
         # split it into individual commands
         args = cmd.split(" ")
         
+        # Basically, this makes "" (an empty string) itself a command, which allows it to be assigned permissions.
         if(len(args) == 1):
             args.append("")
             print(args)
 
         # We'll run retrieve_permission_level to get the permission level of the command
         permission = await self.retrieve_permission_level(self.permissions,args)
+        print("PERMISSION LEVEL: {}".format(permission))
         # If we meet the required level to use this command, we'll return true
         if (userlvl >= permission):
             return True
+        elif (permission == 10):
+            return None
+        elif (permission == 20):
+            return ""
+
 
         return False
 

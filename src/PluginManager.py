@@ -18,6 +18,7 @@ plugin_folder = "./plugins"
 main_module = "__init__"
 permission_authority = PA.PermissionAuthority()
 permissions_file = "permissions.json"
+error_command = "<COMMAND________ERROR>"
 
 class PluginManager():
     def __init__(self):
@@ -38,20 +39,20 @@ class PluginManager():
         for i in plugin_files:
             path = os.path.join(plugin_folder, i)
 
-            self.load_permissions(path,False)
+            if (self.load_permissions(path,False)):
 
-            if not os.path.isdir(path) or not main_module + ".py" in os.listdir(path):
-                continue
+                if not os.path.isdir(path) or not main_module + ".py" in os.listdir(path):
+                    continue
 
-            info = importlib.import_module("plugins." +i)
-            #print(info.__name__)
-            plugins.append(info)
-            #info = importlib.machinery.PathFinder().find_spec(main_module, [path])
-            #plug = self.load_plugin(info)
-            #self.plugins.append(plug)
-            #info.loader.exec_module(plug)
-            #plugins.append(info)#{"name":i,"info":info})
-            print("Loaded plugin: {}".format(i))
+                info = importlib.import_module("plugins." +i)
+                #print(info.__name__)
+                plugins.append(info)
+                #info = importlib.machinery.PathFinder().find_spec(main_module, [path])
+                #plug = self.load_plugin(info)
+                #self.plugins.append(plug)
+                #info.loader.exec_module(plug)
+                #plugins.append(info)#{"name":i,"info":info})
+                print("Loaded plugin: {}".format(i))
         return plugins
 
     def load_plugin(self, plugin):
@@ -61,9 +62,11 @@ class PluginManager():
         if permissions_file in os.listdir(path):
             print("Loading permissions file for {}".format(path))
             permission_authority.load_permissions(os.path.join(path, permissions_file),override)
+            return True
         else:
-            print("Warning: Permission file not found for {}".format(path))
-
+            print("Warning: Permission file not found for {}.\nPlugin excluded from loading.".format(path))                        
+            return False
+    """
     async def async_load_permissions(self,path,override):
         if permissions_file in os.listdir(path):
             print("Loading permissions file for {}".format(path))
@@ -96,6 +99,7 @@ class PluginManager():
 
     async def async_load_plugin(self, plugin):
         return importlib.util.module_from_spec(plugin)
+    """
 
     async def on_update(self):
         while(True):
@@ -110,11 +114,38 @@ class PluginManager():
 
     async def on_event(self, code, msg):
         has_authority = False    
+        match = False##Experimental
 
         if (code == Bytes.b_ChatMessage and msg.message[0] == C.command_char):
             perm_level = await permission_authority.get_permission_level(msg)
-            if (await permission_authority.check_permissions(msg.message,perm_level)):
-                has_authority = True
+            check_result = await permission_authority.check_permissions(msg.message,perm_level)   
+            print("Check Result: {}".format(check_result))
+            
+            if(check_result is True):
+                has_authority = True      
+                print("PULL IT")
+                
+            elif (check_result is False):
+                pass
+            
+            elif (check_result is None or check_result == ""):
+                
+                if (check_result == ""):
+                    # Resolves if there are valid commands before the invalid sub-command that was detected.
+                    check_result = 0              
+              
+                # We intercept the message with the nonexistant command and then insert our own, which will be caught
+                # by our error/setting management plugin. This command is not able to be used by end users due to
+                # Picarto's scrubbing of specific/repeated characters before sending user messages to the server proper.
+                msg.message = C.command_char + error_command + " " + str(check_result) + " " + msg.message[1:]
+                
+                
+                # Since this a command, we have to give it authority to be proccessed by the plugin. Necessary on the
+                # grounds that all user-facing feedback is only avilable on the client level, which would be much messier
+                # to bring down to this scope without recursive/redundant proccesses.
+                has_authority = True    
+
+                
             
 
         for i in self.plugins:
@@ -172,4 +203,3 @@ class PluginManager():
                 print("Unexpected plugin error: " + sys.exc_info()[0])
                 pass
 
-""

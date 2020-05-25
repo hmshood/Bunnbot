@@ -14,10 +14,13 @@ from src import chat_pb2
 from src import Bunn
 from src import Bytes
 from src import Consts as C
+import html.parser as htmlparser
 from google.protobuf.message import Message
 from concurrent.futures import ProcessPoolExecutor
 from contextlib import suppress
 from concurrent.futures import ThreadPoolExecutor
+
+parser = htmlparser.HTMLParser()      # Used to keep non-alphanumeric characters in output reable and not an encoded mess.
 
 
 class BunnClient(object):
@@ -64,6 +67,8 @@ class BunnClient(object):
         #await self.plugin_manager.on_init()
         self.start_listening_time = time.time()
         lastData = time.time()
+        
+        #await Bunn.send_message("Bunnbot has reinitiated!")
         
         while (True):
             #data = await self.websocket.recv()
@@ -124,8 +129,9 @@ class BunnClient(object):
             if (data):
 
                 # We'll grab the first byte from the data... aka our message ID
-                message_type_id = data[0]
-                await self.print_override("({0} UST) Received message ID: {1}".format(datetime.datetime.now().strftime("%X"), data[0]))
+                message_type_id = data[0]                
+                await self.print_override("({0} UST) Received message ID: {1}".format(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), data[0]))#.strftime("%X"), data[0]))
+              
                 # We snip off the first byte and save the rest of the data for later.
                 data = data[1:]
                 # ID: 0; Admin Control
@@ -153,8 +159,9 @@ class BunnClient(object):
                 if (message_type_id == Bytes.b_ChatMessage[0]):
                     msg = chat_pb2.ChatMessage()
                     msg.ParseFromString(data)
-
                     self.cmsgs[msg.id] = msg
+                    
+                    msg.message = parser.unescape(msg.message) ### <--------------- If text input breaks, suspect this
 
                     name = msg.display_name
                     uid = msg.user_id
@@ -165,9 +172,13 @@ class BunnClient(object):
                     # that happened before our bot started.
                     # TODO: We also shouldn't care about the Bot's messages.
                     if (timestamp >= self.start_listening_time and uid != C.bot_channel_id):
+                      
+                        msg.message = parser.unescape(msg.message) ### <--------------- If text input breaks, suspect this
+                        
                         await self.plugin_manager.on_event(Bytes.b_ChatMessage,msg)
+                        
                         timestamp = datetime.datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
-                        printable = "({0} {1}) {2} | {3} : {4}".format(timestamp,"Local Time",uid,name,text)
+                        printable = "({0} {1}) {2} | {3} : {4}".format(timestamp,"UST",uid,name,text)
                         await self.print_override(printable)
                 # ID: 3; Clear History
                 # Occurs whenever the history has been cleared.

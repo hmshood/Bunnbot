@@ -33,8 +33,8 @@ async def on_command(msg):
     # ...and then split it up into a list of words, separated at the space.
     message = message.split(" ")
     
-
-
+  
+    
     # if the command starts with roll, we know we need to do something.
     if (message[0] == "roll" and isActive or (time.time() - lastUsed > cooldown)):
         # It's always good to initialize your variables ahead of time!

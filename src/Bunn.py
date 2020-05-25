@@ -210,7 +210,19 @@ Arguments:
 Sends a /whisper to the given user with the specified message
 '''
 async def whisper(username, message):
-    await send_picarto_command("/whisper","{0} {1}".format(username, message))
+    tempWisp = message
+    charLimit = 245    #Length of 245 instead of 255 since the "/whisper" command uses 10 characters even before user input, including spaces.  
+
+    for w in range(int(len(message) / charLimit) + (len(message) % charLimit > 0)):                  
+        if (len(tempWisp) - charLimit >= 0):
+            tempWisp = message[charLimit * w : (charLimit * w) + charLimit]
+        else:
+            tempWisp = message[charLimit * w:]
+            
+        await send_message("/whisper {0} {1}".format(username, tempWisp))
+      
+        
+
 
 '''
 end_poll
@@ -286,8 +298,13 @@ async def send_message(message):
         _client.is_timer_set = True
         
     
-    while (len(_client.output_queue) > 0):
+    while (len(_client.output_queue) > 0):    
       
+        while (len(_client.output_queue[-1]) >= 255):
+            tooLong = _client.output_queue.pop(-1)
+            _client.output_queue.append(tooLong[:254])
+            _client.output_queue.append(tooLong[255:])            
+            
         if (time.time() - _client.last_output_time >= _client.output_delay):          
             msg = chat_pb2.NewMessage()
             msg.message = _client.output_queue.pop(0)

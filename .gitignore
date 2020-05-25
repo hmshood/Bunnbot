@@ -1,4 +1,4 @@
-# Byte-compiled / optimized / DLL files
+## Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
@@ -120,22 +120,23 @@ _package.json
 *.sh
 
 #Extra Notes
-#to-do*
-#timestamp*
-#blacklist*
+to-do*
+timestamp*
+blacklist*
 keepalive*
-#scoreboard*
-#toggles*
-#stacked*
+scoreboard*
+toggles*
+stacked*
 *txt
 http.js*
 #requirements.txt
 
 # Git Please Don't Eat My Hard Drive
 ../bin
-#logs.txt
-#raffle.txt
-#timestamp.txt
+logs.txt
+raffle.txt
+timestamp.txt
 temp*
 ___*
 
+#

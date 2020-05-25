@@ -43,6 +43,7 @@ async def on_command(msg):
             
             if (started):
                 started = False
+                t.write("")
                 await B.send_message("Break reminder is now OFF.")
             elif (not started):          
                 started = True
