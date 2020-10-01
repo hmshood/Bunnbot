@@ -35,7 +35,7 @@ In order to comply with Picarto.TV Terms of Use Section 16, BunnBot is not allow
 
 ## 2. Plugins
 ### 2.1 Liability
-BunnBot and its original developer (KingCrazy) are not liable for any third-party plugins (plugins which are not shipped with the BunnBot source code) which violate the terms outlined by Picarto.TV, nor are they liable for any actions Picarto.TV take against a user's account brought on by the improper useage of this bot. Any plugins that violate the BunnBot or Picarto.TV terms are to be taken down without question, and any use of illegal plugins is to cease immediately. 
+BunnBot and its original developer (KingCrazy) are not liable for any third-party plugins (plugins which are not shipped with the BunnBot source code) which violate the terms outlined by Picarto.TV, nor are they liable for any actions Picarto.TV take against a user's account brought on by the improper usage of this bot. Any plugins that violate the BunnBot or Picarto.TV terms are to be taken down without question, and any use of illegal plugins is to cease immediately. 
 
 ### 2.2 Plugin Licensing
 Third-party plugins are not a modification of the source code, and therefore can be distributed under the developer's preferred licensing so long as they abide by the terms outlined in this document. The terms outlined in this document supercede any additional licensing that a plugin may have. Picarto.TV and the original BunnBot developer (KingCrazy) reserve the right to request complete termination and a cease and desist of any plugins that fail to abide by their respective terms of service.
