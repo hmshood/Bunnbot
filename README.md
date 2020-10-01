@@ -1,5 +1,5 @@
 # Bunnbot
-Copyright 2018 Alexander S. J. (KingCrazy)
+Copyright 2018-2020 Alexander S. J. (KingCrazy)
 King_Crazy@msn.com
 Project Page: [BunnBot](https://github.com/KingCrazy/Bunnbot)
 
